@@ -67,5 +67,19 @@ defineProps({
             <circle cx="12" cy="8" r="3.25" />
             <path d="M4.75 19.25a7.25 7.25 0 0 1 14.5 0" />
         </template>
+
+        <template v-else-if="name === 'trend-up'">
+            <path d="M4 16l5-5 4 4 7-8" />
+            <path d="M15 7h5v5" />
+        </template>
+
+        <template v-else-if="name === 'trend-down'">
+            <path d="M4 8l5 5 4-4 7 8" />
+            <path d="M15 17h5v-5" />
+        </template>
+
+        <template v-else-if="name === 'trend-flat'">
+            <path d="M4 12h16" />
+        </template>
     </svg>
 </template>

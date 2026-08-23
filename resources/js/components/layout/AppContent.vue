@@ -2,7 +2,7 @@
 </script>
 
 <template>
-    <main class="flex-1 overflow-y-auto bg-slate-50">
+    <main class="flex-1 overflow-y-auto bg-background">
         <div class="mx-auto max-w-7xl p-6 lg:p-8">
             <router-view v-slot="{ Component }">
                 <transition name="fade" mode="out-in">

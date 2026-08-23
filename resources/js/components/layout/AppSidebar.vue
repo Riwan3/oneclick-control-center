@@ -3,6 +3,7 @@ import { useRoute } from 'vue-router';
 import { useUiStore } from '../../stores/ui';
 import { navigationItems } from '../../config/navigation';
 import AppIcon from './AppIcon.vue';
+import UiTooltip from '../ui/UiTooltip.vue';
 
 const ui = useUiStore();
 const route = useRoute();
@@ -10,16 +11,16 @@ const route = useRoute();
 
 <template>
     <aside
-        class="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-slate-200/70 bg-white/80 backdrop-blur-xl transition-[width] duration-200"
+        class="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border bg-white/80 shadow-glass backdrop-blur-xl transition-[width] duration-200"
         :class="ui.sidebarCollapsed ? 'w-20' : 'w-64'"
     >
-        <div class="flex h-16 items-center gap-3 border-b border-slate-200/70 px-4">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-maroon-600 text-sm font-bold text-white">
+        <div class="flex h-16 items-center gap-3 border-b border-border px-4">
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-maroon text-sm font-bold text-white">
                 OC
             </div>
             <div v-if="!ui.sidebarCollapsed" class="min-w-0 leading-tight">
-                <p class="truncate text-sm font-semibold text-slate-800">OneClick</p>
-                <p class="truncate text-xs text-slate-400">Control Center</p>
+                <p class="truncate text-sm font-semibold text-text-primary">OneClick</p>
+                <p class="truncate text-xs text-text-muted">Control Center</p>
             </div>
         </div>
 
@@ -28,41 +29,37 @@ const route = useRoute();
                 v-for="item in navigationItems"
                 :key="item.to"
                 :to="item.to"
-                class="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                class="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
                 :class="[
-                    route.path === item.to ? 'bg-blue-50 text-blue-700 hover:bg-blue-50 hover:text-blue-700' : '',
+                    route.path === item.to ? 'bg-primary-soft text-primary hover:bg-primary-soft hover:text-primary' : '',
                     ui.sidebarCollapsed ? 'justify-center' : '',
                 ]"
             >
                 <span
                     v-if="route.path === item.to"
-                    class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-maroon-600"
+                    class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-maroon"
                 ></span>
 
-                <AppIcon :name="item.icon" class="shrink-0" />
+                <UiTooltip v-if="ui.sidebarCollapsed" :content="item.label" position="right">
+                    <AppIcon :name="item.icon" class="shrink-0" />
+                </UiTooltip>
+                <AppIcon v-else :name="item.icon" class="shrink-0" />
 
                 <span v-if="!ui.sidebarCollapsed" class="truncate">{{ item.label }}</span>
-
-                <span
-                    v-if="ui.sidebarCollapsed"
-                    class="pointer-events-none absolute left-full top-1/2 z-40 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
-                >
-                    {{ item.label }}
-                </span>
             </router-link>
         </nav>
 
-        <div class="border-t border-slate-200/70 p-3">
+        <div class="border-t border-border p-3">
             <div
                 class="flex items-center gap-3 rounded-lg px-2 py-2"
                 :class="ui.sidebarCollapsed ? 'justify-center' : ''"
             >
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-background text-text-muted">
                     <AppIcon name="user" />
                 </div>
                 <div v-if="!ui.sidebarCollapsed" class="min-w-0 leading-tight">
-                    <p class="truncate text-sm font-medium text-slate-700">Guest User</p>
-                    <p class="truncate text-xs text-slate-400">No role assigned</p>
+                    <p class="truncate text-sm font-medium text-text-secondary">Guest User</p>
+                    <p class="truncate text-xs text-text-muted">No role assigned</p>
                 </div>
             </div>
         </div>

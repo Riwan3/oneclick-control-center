@@ -4,6 +4,7 @@ import Dashboard from '../pages/Dashboard.vue';
 import Sites from '../pages/Sites.vue';
 import Monitoring from '../pages/Monitoring.vue';
 import Audit from '../pages/Audit.vue';
+import DesignSystemPreview from '../pages/DesignSystemPreview.vue';
 
 const routes = [
     {
@@ -35,6 +36,13 @@ const routes = [
         name: 'audit',
         component: Audit,
         meta: { title: 'Audit' },
+    },
+    {
+        // Temporary — validates the STEP 3E design system. Not in sidebar nav.
+        path: '/design-system',
+        name: 'design-system',
+        component: DesignSystemPreview,
+        meta: { title: 'Design System' },
     },
 ];
 
