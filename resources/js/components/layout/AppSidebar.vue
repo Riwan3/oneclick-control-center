@@ -1,12 +1,14 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { useUiStore } from '../../stores/ui';
-import { navigationItems } from '../../config/navigation';
+import { useNavigation } from '../../composables/useNavigation';
 import AppIcon from './AppIcon.vue';
 import UiTooltip from '../ui/UiTooltip.vue';
+import UiBadge from '../ui/UiBadge.vue';
 
 const ui = useUiStore();
 const route = useRoute();
+const { groups } = useNavigation();
 </script>
 
 <template>
@@ -25,28 +27,53 @@ const route = useRoute();
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-            <router-link
-                v-for="item in navigationItems"
-                :key="item.to"
-                :to="item.to"
-                class="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
-                :class="[
-                    route.path === item.to ? 'bg-primary-soft text-primary hover:bg-primary-soft hover:text-primary' : '',
-                    ui.sidebarCollapsed ? 'justify-center' : '',
-                ]"
-            >
-                <span
-                    v-if="route.path === item.to"
-                    class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-maroon"
-                ></span>
+            <template v-for="group in groups" :key="group.section ?? 'top'">
+                <p v-if="group.section && !ui.sidebarCollapsed" class="text-label px-3 pb-1 pt-4">
+                    {{ group.section }}
+                </p>
+                <div v-else-if="group.section" class="mx-3 my-2 border-t border-border/70"></div>
 
-                <UiTooltip v-if="ui.sidebarCollapsed" :content="item.label" position="right">
-                    <AppIcon :name="item.icon" class="shrink-0" />
-                </UiTooltip>
-                <AppIcon v-else :name="item.icon" class="shrink-0" />
+                <template v-for="item in group.items" :key="item.id">
+                    <router-link
+                        v-if="item.available"
+                        :to="item.route"
+                        class="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                        :class="[
+                            route.path === item.route ? 'bg-primary-soft text-primary hover:bg-primary-soft hover:text-primary' : '',
+                            ui.sidebarCollapsed ? 'justify-center' : '',
+                        ]"
+                    >
+                        <span
+                            v-if="route.path === item.route"
+                            class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-maroon"
+                        ></span>
 
-                <span v-if="!ui.sidebarCollapsed" class="truncate">{{ item.label }}</span>
-            </router-link>
+                        <UiTooltip v-if="ui.sidebarCollapsed" :content="item.label" position="right">
+                            <AppIcon :name="item.icon" class="shrink-0" />
+                        </UiTooltip>
+                        <AppIcon v-else :name="item.icon" class="shrink-0" />
+
+                        <span v-if="!ui.sidebarCollapsed" class="truncate">{{ item.label }}</span>
+                    </router-link>
+
+                    <div
+                        v-else
+                        class="relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-muted"
+                        :class="ui.sidebarCollapsed ? 'justify-center' : ''"
+                    >
+                        <UiTooltip v-if="ui.sidebarCollapsed" :content="`${item.label} · Soon`" position="right">
+                            <AppIcon :name="item.icon" class="shrink-0 opacity-50" />
+                        </UiTooltip>
+                        <AppIcon v-else :name="item.icon" class="shrink-0 opacity-50" />
+
+                        <span v-if="!ui.sidebarCollapsed" class="min-w-0 flex-1 truncate">{{ item.label }}</span>
+
+                        <UiBadge v-if="!ui.sidebarCollapsed" variant="neutral" class="shrink-0">
+                            Soon
+                        </UiBadge>
+                    </div>
+                </template>
+            </template>
         </nav>
 
         <div class="border-t border-border p-3">

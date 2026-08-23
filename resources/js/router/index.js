@@ -5,6 +5,7 @@ import Sites from '../pages/Sites.vue';
 import Monitoring from '../pages/Monitoring.vue';
 import Audit from '../pages/Audit.vue';
 import DesignSystemPreview from '../pages/DesignSystemPreview.vue';
+import NavigationPreview from '../pages/NavigationPreview.vue';
 
 const routes = [
     {
@@ -43,6 +44,13 @@ const routes = [
         name: 'design-system',
         component: DesignSystemPreview,
         meta: { title: 'Design System' },
+    },
+    {
+        // Temporary — validates the STEP 3F navigation architecture. Not in sidebar nav.
+        path: '/navigation-preview',
+        name: 'navigation-preview',
+        component: NavigationPreview,
+        meta: { title: 'Navigation Preview' },
     },
 ];
 

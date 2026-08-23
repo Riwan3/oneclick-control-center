@@ -81,5 +81,32 @@ defineProps({
         <template v-else-if="name === 'trend-flat'">
             <path d="M4 12h16" />
         </template>
+
+        <template v-else-if="name === 'briefcase'">
+            <rect x="3.5" y="7.5" width="17" height="12" rx="2" />
+            <path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5" />
+            <path d="M3.5 12.5h17" />
+        </template>
+
+        <template v-else-if="name === 'truck'">
+            <rect x="2.5" y="9" width="10" height="7" rx="1" />
+            <path d="M12.5 11.5h4l3 3v1.5h-7z" />
+            <circle cx="6" cy="18" r="1.5" />
+            <circle cx="16.5" cy="18" r="1.5" />
+        </template>
+
+        <template v-else-if="name === 'folder'">
+            <path d="M3.5 7a1.5 1.5 0 0 1 1.5-1.5h4l2 2h8A1.5 1.5 0 0 1 20.5 9v8A1.5 1.5 0 0 1 19 18.5H5A1.5 1.5 0 0 1 3.5 17V7Z" />
+        </template>
+
+        <template v-else-if="name === 'history'">
+            <circle cx="12" cy="13" r="7.5" />
+            <path d="M12 9v4l3 2" />
+        </template>
+
+        <template v-else-if="name === 'tag'">
+            <path d="M3.5 11.5 12 3h6a1.5 1.5 0 0 1 1.5 1.5v6l-8.5 8.5a1.5 1.5 0 0 1-2.1 0L3.5 13.6a1.5 1.5 0 0 1 0-2.1Z" />
+            <circle cx="15.5" cy="8.5" r="1.25" fill="currentColor" stroke="none" />
+        </template>
     </svg>
 </template>
