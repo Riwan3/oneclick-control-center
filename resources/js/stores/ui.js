@@ -2,7 +2,12 @@ import { defineStore } from 'pinia';
 
 export const useUiStore = defineStore('ui', {
     state: () => ({
-        sidebarOpen: true,
+        sidebarCollapsed: false,
         isLoading: false,
     }),
+    actions: {
+        toggleSidebar() {
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+        },
+    },
 });

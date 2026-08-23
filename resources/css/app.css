@@ -1,1 +1,24 @@
 @import "tailwindcss";
+
+@theme {
+    --color-maroon-50: #fdf1f3;
+    --color-maroon-100: #f8dee2;
+    --color-maroon-200: #f0bcc4;
+    --color-maroon-300: #e08fa0;
+    --color-maroon-400: #c95b74;
+    --color-maroon-500: #a53150;
+    --color-maroon-600: #832140;
+    --color-maroon-700: #6b1934;
+    --color-maroon-800: #57152c;
+    --color-maroon-900: #481226;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
