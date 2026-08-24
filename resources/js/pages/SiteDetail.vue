@@ -1,0 +1,97 @@
+<script setup>
+import { computed } from 'vue';
+import { useAuthStore } from '../stores/auth';
+import { sites } from '../data/mock/sites';
+import { getSiteDetail } from '../data/mock/siteDetails';
+import UiCard from '../components/ui/UiCard.vue';
+import UiButton from '../components/ui/UiButton.vue';
+import UiStatus from '../components/ui/UiStatus.vue';
+import DashboardSection from '../components/dashboard/DashboardSection.vue';
+import SiteExecutiveKpi from '../components/site-detail/SiteExecutiveKpi.vue';
+import SiteInformation from '../components/site-detail/SiteInformation.vue';
+import SiteModuleStatus from '../components/site-detail/SiteModuleStatus.vue';
+import SitePerformanceOverview from '../components/site-detail/SitePerformanceOverview.vue';
+import SiteRecentActivity from '../components/site-detail/SiteRecentActivity.vue';
+
+const props = defineProps({
+    id: {
+        type: String,
+        required: true,
+    },
+});
+
+const auth = useAuthStore();
+
+const site = computed(() => sites.find((s) => s.id === props.id) ?? null);
+const detail = computed(() => (site.value ? getSiteDetail(site.value.id) : null));
+
+const statusVariant = { online: 'success', warning: 'warning', offline: 'danger' };
+const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline' };
+</script>
+
+<template>
+    <div v-if="site" class="space-y-8">
+        <div>
+            <router-link to="/sites" class="text-sm font-medium text-primary hover:text-primary-hover">
+                ← Back to Sites
+            </router-link>
+
+            <div class="mt-4 flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <p class="text-page-title">{{ site.code }}</p>
+                    <p class="text-body mt-1">{{ site.name }}</p>
+                    <p class="text-caption mt-1">{{ site.location }}</p>
+                    <div class="mt-3 flex items-center gap-3">
+                        <UiStatus :variant="statusVariant[site.status]" :label="statusLabel[site.status]" />
+                        <span class="text-caption">OneClick {{ site.version }}</span>
+                    </div>
+                </div>
+
+                <!-- Placeholders only — non-functional, no CRUD, Super Admin only. -->
+                <div v-if="auth.can('site_manage') || auth.can('module_manage')" class="flex gap-3">
+                    <UiButton v-if="auth.can('site_manage')" variant="secondary">Configure Site</UiButton>
+                    <UiButton v-if="auth.can('module_manage')" variant="secondary">Manage Modules</UiButton>
+                </div>
+            </div>
+        </div>
+
+        <SiteExecutiveKpi :site="site" />
+
+        <SiteInformation :site="site" />
+
+        <DashboardSection
+            v-if="auth.can('module_view')"
+            title="Module Status"
+            description="OneClick module availability for this site."
+        >
+            <SiteModuleStatus :modules="site.modules" />
+        </DashboardSection>
+
+        <DashboardSection
+            v-if="auth.can('monitoring')"
+            title="Performance Overview"
+            description="Active users, module utilization, and system health trend for this site."
+        >
+            <SitePerformanceOverview :performance="detail.performance" />
+        </DashboardSection>
+
+        <DashboardSection
+            v-if="auth.can('monitoring')"
+            title="Recent Activity"
+            description="Latest events for this site."
+        >
+            <SiteRecentActivity :activities="detail.recentActivity" />
+        </DashboardSection>
+    </div>
+
+    <UiCard v-else>
+        <h2 class="text-page-title">Site not found</h2>
+        <p class="text-body mt-2 max-w-2xl">
+            We couldn't find a site matching &quot;{{ id }}&quot;. It may have been removed or the
+            link is incorrect.
+        </p>
+        <router-link to="/sites" class="mt-4 inline-block">
+            <UiButton variant="secondary">← Back to Sites</UiButton>
+        </router-link>
+    </UiCard>
+</template>

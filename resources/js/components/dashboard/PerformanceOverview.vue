@@ -21,9 +21,9 @@ defineProps({
             <h3 class="text-card-title">Active User Trend</h3>
             <p class="text-caption mt-1">Last 7 days, relative to peak capacity</p>
 
-            <div class="mt-6 flex h-32 items-end gap-2">
+            <div class="mt-6 flex h-32 items-stretch gap-2">
                 <div v-for="point in userTrend" :key="point.label" class="flex flex-1 flex-col items-center gap-2">
-                    <div class="flex h-full w-full items-end">
+                    <div class="flex w-full flex-1 items-end">
                         <div class="w-full rounded-t-md bg-primary/80" :style="{ height: point.value + '%' }"></div>
                     </div>
                     <span class="text-caption">{{ point.label }}</span>
