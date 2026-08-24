@@ -2,16 +2,18 @@
 //
 // Takes the static CONFIGURATION (config/navigation.js) and resolves it
 // against the current mock role/site state (stores/auth.js, stores/site.js)
-// into a grouped, ready-to-render structure. AppSidebar.vue (PRESENTATION)
-// only consumes the output of this composable — it does not filter or
-// group anything itself.
+// into a grouped, ready-to-render structure. Role visibility is resolved
+// via the centralized role capability matrix (config/roles.js, exposed
+// through auth.can()) — this file has no role logic of its own.
+// AppSidebar.vue (PRESENTATION) only consumes the output of this
+// composable — it does not filter or group anything itself.
 import { computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useSiteStore } from '../stores/site';
 import { navigationItems } from '../config/navigation';
 
-function isVisibleForRole(item, role) {
-    return !item.roles || item.roles.includes(role);
+function isVisibleForCapability(item, auth) {
+    return !item.capability || auth.can(item.capability);
 }
 
 function isVisibleForSite(item, currentSite) {
@@ -30,7 +32,7 @@ export function useNavigation() {
 
     const items = computed(() =>
         navigationItems
-            .filter((item) => isVisibleForRole(item, auth.role))
+            .filter((item) => isVisibleForCapability(item, auth))
             .filter((item) => isVisibleForSite(item, site.currentSite))
             .map((item) => ({
                 ...item,

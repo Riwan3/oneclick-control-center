@@ -1,8 +1,5 @@
 import { defineStore } from 'pinia';
-
-// The three official Control Center roles. A OneClick site's own local
-// "Super Admin" is a separate, site-level concept — not one of these.
-export const CONTROL_CENTER_ROLES = ['super_admin', 'management', 'view'];
+import { CONTROL_CENTER_ROLES, getRole } from '../config/roles';
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -11,11 +8,20 @@ export const useAuthStore = defineStore('auth', {
         // Mock/default role — stands in until real authentication exists.
         role: 'super_admin',
     }),
+    getters: {
+        roleDefinition: (state) => getRole(state.role),
+    },
     actions: {
         setRole(role) {
             if (CONTROL_CENTER_ROLES.includes(role)) {
                 this.role = role;
             }
+        },
+        hasRole(role) {
+            return this.role === role;
+        },
+        can(capability) {
+            return Boolean(getRole(this.role)?.capabilities?.[capability]);
         },
     },
 });

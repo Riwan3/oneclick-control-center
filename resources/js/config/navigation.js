@@ -7,18 +7,19 @@
 // split means new nav items are added here, not inside AppSidebar.vue.
 //
 // Field reference:
-// - id       unique key
-// - label    display label
-// - route    Vue Router path, or null if the page does not exist yet
-// - icon     AppIcon name
-// - section  group heading shown in the sidebar, or null for top-level items
-// - module   key into config/modules.js, or null if not module-gated
-// - enabled  whether the page/feature actually exists yet (independent of
-//            role/site — an unbuilt page is unavailable to everyone)
-// - roles    Control Center roles (see stores/auth.js) that may see this item
-// - sites    'all' (always visible) or 'selected' (only once a specific
-//            site is chosen — for site- or module-scoped items)
-// - order    sort position, grouped in contiguous blocks per section
+// - id          unique key
+// - label       display label
+// - route       Vue Router path, or null if the page does not exist yet
+// - icon        AppIcon name
+// - section     group heading shown in the sidebar, or null for top-level items
+// - module      key into config/modules.js, or null if not module-gated
+// - enabled     whether the page/feature actually exists yet (independent of
+//               role/site — an unbuilt page is unavailable to everyone)
+// - capability  key into the role capability matrix (config/roles.js) that
+//               a role needs to see this item, or null if every role sees it
+// - sites       'all' (always visible) or 'selected' (only once a specific
+//               site is chosen — for site- or module-scoped items)
+// - order       sort position, grouped in contiguous blocks per section
 export const navigationItems = [
     {
         id: 'home',
@@ -28,7 +29,7 @@ export const navigationItems = [
         section: null,
         module: null,
         enabled: true,
-        roles: ['super_admin', 'management', 'view'],
+        capability: 'overview',
         sites: 'all',
         order: 1,
     },
@@ -40,7 +41,7 @@ export const navigationItems = [
         section: null,
         module: null,
         enabled: true,
-        roles: ['super_admin', 'management', 'view'],
+        capability: 'overview',
         sites: 'all',
         order: 2,
     },
@@ -52,7 +53,7 @@ export const navigationItems = [
         section: null,
         module: null,
         enabled: true,
-        roles: ['super_admin', 'management', 'view'],
+        capability: 'site_view',
         sites: 'all',
         order: 3,
     },
@@ -64,7 +65,7 @@ export const navigationItems = [
         section: 'Performance',
         module: null,
         enabled: false,
-        roles: ['super_admin', 'management'],
+        capability: 'kpi',
         sites: 'all',
         order: 10,
     },
@@ -76,7 +77,7 @@ export const navigationItems = [
         section: 'Performance',
         module: null,
         enabled: false,
-        roles: ['super_admin', 'management', 'view'],
+        capability: 'site_view',
         sites: 'selected',
         order: 11,
     },
@@ -88,7 +89,7 @@ export const navigationItems = [
         section: 'Operations',
         module: 'one-manpower',
         enabled: false,
-        roles: ['super_admin', 'management'],
+        capability: 'module_view',
         sites: 'selected',
         order: 20,
     },
@@ -100,7 +101,7 @@ export const navigationItems = [
         section: 'Operations',
         module: 'one-fleet',
         enabled: false,
-        roles: ['super_admin', 'management'],
+        capability: 'module_view',
         sites: 'selected',
         order: 21,
     },
@@ -112,7 +113,7 @@ export const navigationItems = [
         section: 'Operations',
         module: 'one-dms',
         enabled: false,
-        roles: ['super_admin', 'management', 'view'],
+        capability: 'module_view',
         sites: 'selected',
         order: 22,
     },
@@ -124,7 +125,7 @@ export const navigationItems = [
         section: 'Governance',
         module: null,
         enabled: true,
-        roles: ['super_admin'],
+        capability: 'audit_view',
         sites: 'all',
         order: 30,
     },
@@ -136,7 +137,7 @@ export const navigationItems = [
         section: 'Governance',
         module: null,
         enabled: false,
-        roles: ['super_admin', 'management'],
+        capability: 'change_log_view',
         sites: 'all',
         order: 31,
     },
@@ -148,7 +149,7 @@ export const navigationItems = [
         section: 'Governance',
         module: null,
         enabled: false,
-        roles: ['super_admin', 'management', 'view'],
+        capability: 'version_view',
         sites: 'all',
         order: 32,
     },
@@ -160,7 +161,7 @@ export const navigationItems = [
         section: 'System',
         module: null,
         enabled: true,
-        roles: ['super_admin', 'management'],
+        capability: 'monitoring',
         sites: 'all',
         order: 40,
     },
