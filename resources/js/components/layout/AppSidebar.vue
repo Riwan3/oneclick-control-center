@@ -5,6 +5,7 @@ import { useNavigation } from '../../composables/useNavigation';
 import AppIcon from './AppIcon.vue';
 import UiTooltip from '../ui/UiTooltip.vue';
 import UiBadge from '../ui/UiBadge.vue';
+import logoUrl from '../../../../Logo-Oneclick.png';
 
 const ui = useUiStore();
 const route = useRoute();
@@ -17,9 +18,7 @@ const { groups } = useNavigation();
         :class="ui.sidebarCollapsed ? 'w-20' : 'w-64'"
     >
         <div class="flex h-16 items-center gap-3 border-b border-border px-4">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-maroon text-sm font-bold text-white">
-                OC
-            </div>
+            <img :src="logoUrl" alt="OneClick Logo" class="h-10 w-10 shrink-0 object-contain" />
             <div v-if="!ui.sidebarCollapsed" class="min-w-0 leading-tight">
                 <p class="truncate text-sm font-semibold text-text-primary">OneClick</p>
                 <p class="truncate text-xs text-text-muted">Control Center</p>

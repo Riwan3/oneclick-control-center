@@ -114,5 +114,11 @@ defineProps({
             <path d="M3.5 12 12 16.5 20.5 12" />
             <path d="M3.5 16 12 20.5 20.5 16" />
         </template>
+
+        <template v-else-if="name === 'package'">
+            <path d="M12 3.5 4 7.5v9L12 20.5l8-4v-9Z" />
+            <path d="M4 7.5 12 11.5 20 7.5" />
+            <path d="M12 11.5V20.5" />
+        </template>
     </svg>
 </template>

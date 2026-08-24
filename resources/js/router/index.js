@@ -4,6 +4,7 @@ import Dashboard from '../pages/Dashboard.vue';
 import Sites from '../pages/Sites.vue';
 import SiteDetail from '../pages/SiteDetail.vue';
 import Modules from '../pages/Modules.vue';
+import Deployments from '../pages/Deployments.vue';
 import Monitoring from '../pages/Monitoring.vue';
 import Audit from '../pages/Audit.vue';
 import DesignSystemPreview from '../pages/DesignSystemPreview.vue';
@@ -40,6 +41,12 @@ const routes = [
         name: 'modules',
         component: Modules,
         meta: { title: 'Modules' },
+    },
+    {
+        path: '/deployments',
+        name: 'deployments',
+        component: Deployments,
+        meta: { title: 'Deployments' },
     },
     {
         path: '/monitoring',

@@ -177,4 +177,16 @@ export const navigationItems = [
         sites: 'all',
         order: 40,
     },
+    {
+        id: 'deployments',
+        label: 'Deployments',
+        route: '/deployments',
+        icon: 'package',
+        section: 'System',
+        module: null,
+        enabled: true,
+        capability: 'version_view',
+        sites: 'all',
+        order: 41,
+    },
 ];
