@@ -3,6 +3,7 @@ import Home from '../pages/Home.vue';
 import Dashboard from '../pages/Dashboard.vue';
 import Sites from '../pages/Sites.vue';
 import SiteDetail from '../pages/SiteDetail.vue';
+import Modules from '../pages/Modules.vue';
 import Monitoring from '../pages/Monitoring.vue';
 import Audit from '../pages/Audit.vue';
 import DesignSystemPreview from '../pages/DesignSystemPreview.vue';
@@ -33,6 +34,12 @@ const routes = [
         component: SiteDetail,
         props: true,
         meta: { title: 'Site Detail' },
+    },
+    {
+        path: '/modules',
+        name: 'modules',
+        component: Modules,
+        meta: { title: 'Modules' },
     },
     {
         path: '/monitoring',

@@ -108,5 +108,11 @@ defineProps({
             <path d="M3.5 11.5 12 3h6a1.5 1.5 0 0 1 1.5 1.5v6l-8.5 8.5a1.5 1.5 0 0 1-2.1 0L3.5 13.6a1.5 1.5 0 0 1 0-2.1Z" />
             <circle cx="15.5" cy="8.5" r="1.25" fill="currentColor" stroke="none" />
         </template>
+
+        <template v-else-if="name === 'layers'">
+            <path d="M12 3.5 3.5 8 12 12.5 20.5 8Z" />
+            <path d="M3.5 12 12 16.5 20.5 12" />
+            <path d="M3.5 16 12 20.5 20.5 16" />
+        </template>
     </svg>
 </template>

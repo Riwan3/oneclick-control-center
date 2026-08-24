@@ -58,6 +58,18 @@ export const navigationItems = [
         order: 3,
     },
     {
+        id: 'modules',
+        label: 'Modules',
+        route: '/modules',
+        icon: 'layers',
+        section: null,
+        module: null,
+        enabled: true,
+        capability: 'module_view',
+        sites: 'all',
+        order: 4,
+    },
+    {
         id: 'kpi',
         label: 'KPI',
         route: null,

@@ -5,8 +5,8 @@
 // on each site in stores/site.js. Real module metadata (versioning,
 // entitlements, etc.) will come from the backend once it exists.
 export const modules = [
-    { key: 'one-manpower', label: 'One-Manpower' },
-    { key: 'one-fleet', label: 'One-Fleet' },
-    { key: 'one-dms', label: 'One-DMS' },
-    { key: 'one-qcc', label: 'One-QCC' },
+    { key: 'one-manpower', label: 'One-Manpower', description: 'Workforce and manpower management.' },
+    { key: 'one-fleet', label: 'One-Fleet', description: 'Fleet and heavy equipment management.' },
+    { key: 'one-dms', label: 'One-DMS', description: 'Document management system.' },
+    { key: 'one-qcc', label: 'One-QCC', description: 'Quality control circle tracking.' },
 ];
