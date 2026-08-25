@@ -1,6 +1,7 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { useUiStore } from '../../stores/ui';
+import { useAuthStore } from '../../stores/auth';
 import { useNavigation } from '../../composables/useNavigation';
 import AppIcon from './AppIcon.vue';
 import UiTooltip from '../ui/UiTooltip.vue';
@@ -8,6 +9,7 @@ import UiBadge from '../ui/UiBadge.vue';
 import logoUrl from '../../../../Logo-Oneclick.png';
 
 const ui = useUiStore();
+const auth = useAuthStore();
 const route = useRoute();
 const { groups } = useNavigation();
 </script>
@@ -84,8 +86,8 @@ const { groups } = useNavigation();
                     <AppIcon name="user" />
                 </div>
                 <div v-if="!ui.sidebarCollapsed" class="min-w-0 leading-tight">
-                    <p class="truncate text-sm font-medium text-text-secondary">Guest User</p>
-                    <p class="truncate text-xs text-text-muted">No role assigned</p>
+                    <p class="truncate text-sm font-medium text-text-secondary">{{ auth.user?.name ?? 'Guest' }}</p>
+                    <p class="truncate text-xs text-text-muted">{{ auth.roleDefinition?.label ?? 'No role assigned' }}</p>
                 </div>
             </div>
         </div>

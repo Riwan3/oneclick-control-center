@@ -166,6 +166,18 @@ export const navigationItems = [
         order: 32,
     },
     {
+        id: 'users',
+        label: 'User Management',
+        route: '/users',
+        icon: 'user',
+        section: 'Governance',
+        module: null,
+        enabled: true,
+        capability: 'user_manage',
+        sites: 'all',
+        order: 33,
+    },
+    {
         id: 'monitoring',
         label: 'Monitoring',
         route: '/monitoring',

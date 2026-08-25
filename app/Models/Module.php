@@ -1,0 +1,18 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+// Minimal reference model backing per-user module access. Keys mirror
+// resources/js/config/modules.js — see database/seeders/ModuleSeeder.
+class Module extends Model
+{
+    protected $fillable = ['key', 'label'];
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_module_access');
+    }
+}
