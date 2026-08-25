@@ -38,3 +38,34 @@ export async function apiJson(url, options = {}) {
     }
     return { ok: response.ok, status: response.status, data };
 }
+
+/**
+ * Classifies HTTP response status codes into consistent categories.
+ */
+export function getHttpErrorCategory(status) {
+    if (status === 401) return 'auth';
+    if (status === 403) return 'forbidden';
+    if (status === 422) return 'validation';
+    if (status >= 500) return 'server';
+    return 'other';
+}
+
+/**
+ * Parses and returns a consistent, user-friendly error message based on status and data.
+ */
+export function parseHttpErrorMessage(status, data) {
+    if (status === 401) {
+        return 'Your session has expired. Please log in again.';
+    }
+    if (status === 403) {
+        return 'You do not have permission to access this resource.';
+    }
+    if (status === 422) {
+        return data?.message ?? 'Validation failed. Please check your inputs.';
+    }
+    if (status >= 500) {
+        return 'A server or integration error occurred. Please try again later.';
+    }
+    return data?.message ?? 'An unexpected error occurred.';
+}
+

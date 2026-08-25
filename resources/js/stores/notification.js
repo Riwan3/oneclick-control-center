@@ -3,7 +3,7 @@
 // every value here (list, unreadCount) is backend-confirmed, never
 // guessed/faked locally.
 import { defineStore } from 'pinia';
-import { apiJson } from '../lib/http';
+import { notificationService } from '../services/notificationService';
 
 export const useNotificationStore = defineStore('notification', {
     state: () => ({
@@ -19,7 +19,7 @@ export const useNotificationStore = defineStore('notification', {
     }),
     actions: {
         async fetchUnreadCount() {
-            const { ok, data } = await apiJson('/api/notifications/unread-count');
+            const { ok, data } = await notificationService.fetchUnreadCount();
             if (ok) {
                 this.unreadCount = data?.count ?? 0;
             }
@@ -33,8 +33,7 @@ export const useNotificationStore = defineStore('notification', {
             this.loading = true;
             this.error = null;
 
-            const params = new URLSearchParams({ page, per_page: perPage, status, type });
-            const { ok, data } = await apiJson(`/api/notifications?${params}`);
+            const { ok, data } = await notificationService.fetchNotifications({ page, perPage, status, type });
 
             // A newer fetchNotifications() call (e.g. the user changed the
             // filter again before this one finished) has already landed —
@@ -57,7 +56,7 @@ export const useNotificationStore = defineStore('notification', {
         },
 
         async markAsRead(id) {
-            const { ok, data } = await apiJson(`/api/notifications/${id}/read`, { method: 'POST' });
+            const { ok, data } = await notificationService.markAsRead(id);
 
             if (ok) {
                 const updated = data?.data ?? {};
@@ -70,7 +69,7 @@ export const useNotificationStore = defineStore('notification', {
         },
 
         async markAllAsRead() {
-            const { ok, data } = await apiJson('/api/notifications/read-all', { method: 'POST' });
+            const { ok, data } = await notificationService.markAllAsRead();
 
             if (ok) {
                 const now = new Date().toISOString();
@@ -82,3 +81,4 @@ export const useNotificationStore = defineStore('notification', {
         },
     },
 });
+

@@ -33,7 +33,12 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'role' => 'view',
             'status' => 'active',
-            'site_access_scope' => 'all',
+            // 'view' is a non-super-admin role — default to the safe
+            // "explicit, currently empty" scope rather than implicit
+            // 'all'. A test that needs real access should attach
+            // sites()/modules() explicitly.
+            'site_access_scope' => 'selected',
+            'module_access_scope' => 'selected',
         ];
     }
 

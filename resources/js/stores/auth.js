@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { CONTROL_CENTER_ROLES, getRole } from '../config/roles';
-import { apiJson } from '../lib/http';
+import { authService } from '../services/authService';
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', {
         async fetchUser() {
             this.loading = true;
             try {
-                const { ok, data } = await apiJson('/api/user');
+                const { ok, data } = await authService.fetchCurrentUser();
                 if (ok) {
                     this.user = data?.data ?? data;
                     this.authenticated = true;
@@ -50,6 +50,9 @@ export const useAuthStore = defineStore('auth', {
                     this.user = null;
                     this.authenticated = false;
                 }
+            } catch {
+                this.user = null;
+                this.authenticated = false;
             } finally {
                 this.loading = false;
                 this.initialized = true;
@@ -60,10 +63,7 @@ export const useAuthStore = defineStore('auth', {
             this.loading = true;
             this.error = null;
             try {
-                const { ok, status, data } = await apiJson('/login', {
-                    method: 'POST',
-                    body: JSON.stringify({ username, password }),
-                });
+                const { ok, status, data } = await authService.login(username, password);
 
                 if (ok) {
                     this.user = data?.data ?? data;
@@ -88,7 +88,7 @@ export const useAuthStore = defineStore('auth', {
         async logout() {
             this.loading = true;
             try {
-                await apiJson('/logout', { method: 'POST' });
+                await authService.logout();
             } finally {
                 this.user = null;
                 this.authenticated = false;

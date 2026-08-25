@@ -37,6 +37,7 @@ class SuperAdminSeeder extends Seeder
             'role' => 'super_admin',
             'status' => 'active',
             'site_access_scope' => 'all',
+            'module_access_scope' => 'all',
         ]);
 
         if ($envPassword) {

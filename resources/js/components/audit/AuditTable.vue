@@ -46,7 +46,16 @@ function getActionBadgeVariant(action) {
         case 'login_failed':
             return 'danger';
         case 'user_created':
+        case 'user_activated':
             return 'success';
+        case 'user_updated':
+        case 'user_site_access_updated':
+        case 'user_module_access_updated':
+            return 'info';
+        case 'user_deactivated':
+            return 'warning';
+        case 'user_deleted':
+            return 'danger';
         default:
             return 'neutral';
     }

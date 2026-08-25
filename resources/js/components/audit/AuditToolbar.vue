@@ -55,6 +55,12 @@ watch(
                 <option value="logout">Logout</option>
                 <option value="login_failed">Login Failed</option>
                 <option value="user_created">User Created</option>
+                <option value="user_updated">User Updated</option>
+                <option value="user_deleted">User Deleted</option>
+                <option value="user_activated">User Activated</option>
+                <option value="user_deactivated">User Deactivated</option>
+                <option value="user_site_access_updated">Site Access Updated</option>
+                <option value="user_module_access_updated">Module Access Updated</option>
             </select>
         </div>
 
