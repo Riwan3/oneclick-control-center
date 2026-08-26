@@ -57,11 +57,23 @@ class UserResource extends JsonResource
                 'siteIds' => $siteAccess['mode'] === 'selected'
                     ? collect($siteAccess['sites'])->pluck('id')->all()
                     : [],
+                // Codes (not just ids) so any authenticated user's own
+                // effective access — not just what the admin picker
+                // needs — can be matched against site-identity keyed
+                // frontend data without a second super_admin-gated
+                // catalogue call. See resources/js/composables/
+                // useEffectiveAccess.js.
+                'siteCodes' => $siteAccess['mode'] === 'selected'
+                    ? collect($siteAccess['sites'])->pluck('code')->all()
+                    : [],
             ],
             'moduleAccess' => [
                 'mode' => $moduleAccess['mode'],
                 'moduleIds' => $moduleAccess['mode'] === 'selected'
                     ? collect($moduleAccess['modules'])->pluck('id')->all()
+                    : [],
+                'moduleKeys' => $moduleAccess['mode'] === 'selected'
+                    ? collect($moduleAccess['modules'])->pluck('key')->all()
                     : [],
             ],
         ];

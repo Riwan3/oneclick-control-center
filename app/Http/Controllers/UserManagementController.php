@@ -34,7 +34,17 @@ class UserManagementController extends Controller
 
     public function index()
     {
-        $users = User::orderBy('name')->get();
+        // Eager loads the site/module pivots for every user in one pass
+        // instead of the N extra queries UserResource's per-user
+        // effectiveSiteAccess()/effectiveModuleAccess() calls would
+        // otherwise trigger — see User::effectiveSiteAccess()'s
+        // relationLoaded() check, which reads these in-memory instead of
+        // re-querying. The 'all' catalogue (super_admin/'all'-mode
+        // users) still resolves via a small, fixed-size Site/Module
+        // query, unaffected by this eager load.
+        $users = User::with(['sites:id,code,name', 'modules:id,key,label'])
+            ->orderBy('name')
+            ->get();
 
         return UserResource::collection($users);
     }

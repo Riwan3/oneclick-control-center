@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
+import { useEffectiveAccess } from '../composables/useEffectiveAccess';
 import { sites } from '../data/mock/sites';
 import { getSiteDetail } from '../data/mock/siteDetails';
 import UiCard from '../components/ui/UiCard.vue';
@@ -21,8 +22,19 @@ const props = defineProps({
 });
 
 const auth = useAuthStore();
+const { canAccessSite } = useEffectiveAccess();
 
-const site = computed(() => sites.find((s) => s.id === props.id) ?? null);
+// EFFECTIVE ACCESS: a management/view user navigating directly to
+// /sites/{unauthorized-site-id} — by typing the URL, editing history
+// state, or any other client-side manipulation — must not see that
+// site's data. Rather than expose a distinct "forbidden" branch (which
+// would itself confirm the site exists), an unauthorized site resolves
+// to the same null/"not found" state as a genuinely unknown id.
+const site = computed(() => {
+    const match = sites.find((s) => s.id === props.id) ?? null;
+    if (!match) return null;
+    return canAccessSite(match.code) ? match : null;
+});
 const detail = computed(() => (site.value ? getSiteDetail(site.value.id) : null));
 
 const statusVariant = { online: 'success', warning: 'warning', offline: 'danger' };

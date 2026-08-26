@@ -1,5 +1,6 @@
 <script setup>
 import { useAuthStore } from '../stores/auth';
+import { useHomeDashboard } from '../composables/useHomeDashboard';
 import DashboardSection from '../components/dashboard/DashboardSection.vue';
 import ExecutiveKpiGrid from '../components/dashboard/ExecutiveKpiGrid.vue';
 import SiteHealthOverview from '../components/dashboard/SiteHealthOverview.vue';
@@ -7,17 +8,14 @@ import PerformanceOverview from '../components/dashboard/PerformanceOverview.vue
 import UserActivityCard from '../components/dashboard/UserActivityCard.vue';
 import ModuleOverview from '../components/dashboard/ModuleOverview.vue';
 import RecentActivity from '../components/dashboard/RecentActivity.vue';
-import {
-    executiveKpis,
-    siteHealth,
-    activeUserTrend,
-    moduleUtilization,
-    userActivity,
-    moduleAdoption,
-    recentActivity,
-} from '../data/mock/homeDashboard';
 
 const auth = useAuthStore();
+
+// EFFECTIVE ACCESS: every number below (KPIs, site health, module
+// utilization/adoption, user activity) is scoped to the sites/modules
+// this user was explicitly granted — see useHomeDashboard.js.
+const { executiveKpis, siteHealth, activeUserTrend, moduleUtilization, userActivity, moduleAdoption, recentActivity } =
+    useHomeDashboard();
 
 // Static at load — no polling/interval, mock only per STEP 3H.
 const today = new Date().toLocaleDateString('en-GB', {

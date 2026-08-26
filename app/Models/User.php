@@ -73,9 +73,18 @@ class User extends Authenticatable
     {
         $mode = $this->role === 'super_admin' ? 'all' : $this->site_access_scope;
 
-        $sites = $mode === 'all'
-            ? Site::orderBy('name')->get(['id', 'code', 'name'])
-            : $this->sites()->orderBy('sites.name')->get(['sites.id', 'sites.code', 'sites.name']);
+        if ($mode === 'all') {
+            $sites = Site::orderBy('name')->get(['id', 'code', 'name']);
+        } elseif ($this->relationLoaded('sites')) {
+            // Avoids re-querying the pivot when the caller already eager
+            // loaded it (e.g. UserManagementController::index() listing
+            // many users at once) — same result as the query below, just
+            // read from the already-fetched in-memory relation instead
+            // of issuing a fresh query per user.
+            $sites = $this->sites->sortBy('name')->values();
+        } else {
+            $sites = $this->sites()->orderBy('sites.name')->get(['sites.id', 'sites.code', 'sites.name']);
+        }
 
         return [
             'mode' => $mode,
@@ -94,9 +103,14 @@ class User extends Authenticatable
     {
         $mode = $this->role === 'super_admin' ? 'all' : $this->module_access_scope;
 
-        $modules = $mode === 'all'
-            ? Module::orderBy('label')->get(['id', 'key', 'label'])
-            : $this->modules()->orderBy('modules.label')->get(['modules.id', 'modules.key', 'modules.label']);
+        if ($mode === 'all') {
+            $modules = Module::orderBy('label')->get(['id', 'key', 'label']);
+        } elseif ($this->relationLoaded('modules')) {
+            // See the matching comment in effectiveSiteAccess() above.
+            $modules = $this->modules->sortBy('label')->values();
+        } else {
+            $modules = $this->modules()->orderBy('modules.label')->get(['modules.id', 'modules.key', 'modules.label']);
+        }
 
         return [
             'mode' => $mode,

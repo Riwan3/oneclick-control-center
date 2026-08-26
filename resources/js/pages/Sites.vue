@@ -1,22 +1,29 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
+import { useEffectiveAccess } from '../composables/useEffectiveAccess';
 import UiButton from '../components/ui/UiButton.vue';
 import SiteStatusSummary from '../components/sites/SiteStatusSummary.vue';
 import SiteToolbar from '../components/sites/SiteToolbar.vue';
 import SiteGrid from '../components/sites/SiteGrid.vue';
-import { sites } from '../data/mock/sites';
+import { sites as allSites } from '../data/mock/sites';
 
 const auth = useAuthStore();
+const { canAccessSite } = useEffectiveAccess();
 
 const search = ref('');
 const statusFilter = ref('all');
 const moduleFilter = ref('all');
 
+// EFFECTIVE ACCESS: management/view only ever see the sites they were
+// explicitly granted — everything downstream (summary, toolbar filters,
+// grid) is derived from this, not from the raw mock catalogue.
+const sites = computed(() => allSites.filter((site) => canAccessSite(site.code)));
+
 const filteredSites = computed(() => {
     const term = search.value.trim().toLowerCase();
 
-    return sites.filter((site) => {
+    return sites.value.filter((site) => {
         const matchesSearch =
             !term ||
             site.code.toLowerCase().includes(term) ||

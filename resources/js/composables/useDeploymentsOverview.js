@@ -5,8 +5,9 @@
 // so it stays consistent with the underlying dataset rather than being a
 // separately hardcoded number.
 import { ref, computed } from 'vue';
-import { sites } from '../data/mock/sites';
+import { sites as allSites } from '../data/mock/sites';
 import { deployments } from '../data/mock/deployments';
+import { useEffectiveAccess } from './useEffectiveAccess';
 
 const VERSION_STATUS_OPTIONS = [
     { value: 'all', label: 'All' },
@@ -48,9 +49,15 @@ function resolveVersionStatus(currentVersion, targetVersion) {
 }
 
 export function useDeploymentsOverview() {
+    const { canAccessSite } = useEffectiveAccess();
+
     const search = ref('');
     const versionStatusFilter = ref('all');
     const deploymentStatusFilter = ref('all');
+
+    // EFFECTIVE ACCESS: management/view only see deployment records for
+    // sites they were explicitly granted access to.
+    const sites = computed(() => allSites.filter((site) => canAccessSite(site.code)));
 
     // Join deployment records with their site identity, resolved from
     // sites.js by siteId — deployments.js never carries code/name/location.
@@ -59,7 +66,7 @@ export function useDeploymentsOverview() {
     const records = computed(() =>
         deployments
             .map((deployment) => {
-                const site = sites.find((s) => s.id === deployment.siteId);
+                const site = sites.value.find((s) => s.id === deployment.siteId);
                 if (!site) return null;
                 return {
                     ...deployment,
