@@ -201,4 +201,20 @@ export const navigationItems = [
         sites: 'all',
         order: 41,
     },
+    {
+        // STEP 3R: Module Observatory — configuration/version/sidebar
+        // governance for monitored applications (starting with
+        // One-Power). Reuses module_view, the same capability Modules
+        // already uses — no new capability was created for this.
+        id: 'module-observatory',
+        label: 'Module Observatory',
+        route: '/module-observatory',
+        icon: 'monitoring',
+        section: 'System',
+        module: null,
+        enabled: true,
+        capability: 'module_view',
+        sites: 'all',
+        order: 42,
+    },
 ];

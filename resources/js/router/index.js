@@ -7,6 +7,7 @@ import Sites from '../pages/Sites.vue';
 import SiteDetail from '../pages/SiteDetail.vue';
 import Modules from '../pages/Modules.vue';
 import Deployments from '../pages/Deployments.vue';
+import ModuleObservatory from '../pages/ModuleObservatory.vue';
 import Monitoring from '../pages/Monitoring.vue';
 import Audit from '../pages/Audit.vue';
 import Users from '../pages/Users.vue';
@@ -59,6 +60,12 @@ const routes = [
         name: 'deployments',
         component: Deployments,
         meta: { title: 'Deployments' },
+    },
+    {
+        path: '/module-observatory',
+        name: 'module-observatory',
+        component: ModuleObservatory,
+        meta: { title: 'Module Observatory' },
     },
     {
         path: '/monitoring',
