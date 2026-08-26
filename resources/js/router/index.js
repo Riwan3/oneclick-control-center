@@ -8,6 +8,7 @@ import SiteDetail from '../pages/SiteDetail.vue';
 import Modules from '../pages/Modules.vue';
 import Deployments from '../pages/Deployments.vue';
 import ModuleObservatory from '../pages/ModuleObservatory.vue';
+import Baseline from '../pages/Baseline.vue';
 import Monitoring from '../pages/Monitoring.vue';
 import Audit from '../pages/Audit.vue';
 import Users from '../pages/Users.vue';
@@ -66,6 +67,12 @@ const routes = [
         name: 'module-observatory',
         component: ModuleObservatory,
         meta: { title: 'Module Observatory' },
+    },
+    {
+        path: '/baseline',
+        name: 'baseline',
+        component: Baseline,
+        meta: { title: 'Master Baseline' },
     },
     {
         path: '/monitoring',

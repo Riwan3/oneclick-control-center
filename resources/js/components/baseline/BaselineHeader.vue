@@ -1,0 +1,28 @@
+<script setup>
+import UiCard from '../ui/UiCard.vue';
+import UiBadge from '../ui/UiBadge.vue';
+
+defineProps({
+    baselineVersion: {
+        type: String,
+        default: null,
+    },
+});
+</script>
+
+<template>
+    <UiCard>
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <p class="text-label">Master Baseline</p>
+                <h1 class="text-page-title mt-1">Official OneClick ecosystem baseline</h1>
+                <p class="text-body mt-2 max-w-2xl">
+                    Central reference for the modules and sidebar structure released across
+                    OneClick sites.
+                </p>
+            </div>
+
+            <UiBadge v-if="baselineVersion" variant="neutral">Baseline {{ baselineVersion }}</UiBadge>
+        </div>
+    </UiCard>
+</template>

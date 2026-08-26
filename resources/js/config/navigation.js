@@ -178,6 +178,22 @@ export const navigationItems = [
         order: 33,
     },
     {
+        // Master Baseline Registry — reuses change_log_view, the
+        // closest existing governance-reference capability. No new
+        // capability was created; the existing "Change Log" placeholder
+        // item above (route: null, enabled: false) is untouched.
+        id: 'baseline',
+        label: 'Baseline',
+        route: '/baseline',
+        icon: 'tag',
+        section: 'Governance',
+        module: null,
+        enabled: true,
+        capability: 'change_log_view',
+        sites: 'all',
+        order: 34,
+    },
+    {
         id: 'monitoring',
         label: 'Monitoring',
         route: '/monitoring',
