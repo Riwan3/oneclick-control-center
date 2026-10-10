@@ -29,6 +29,7 @@ git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
 log "Build image & restart container ..."
+docker network inspect edge >/dev/null 2>&1 || docker network create edge   # jaringan bersama reverse proxy (OneClick/infra/edge)
 $COMPOSE up -d --build --remove-orphans
 
 log "Menunggu aplikasi siap (migrate & cache berjalan di entrypoint) ..."

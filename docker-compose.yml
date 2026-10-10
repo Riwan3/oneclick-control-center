@@ -1,12 +1,16 @@
 # OneClick Control Center — produksi dengan Docker Compose.
 # Layanan: app (Nginx + PHP-FPM), mysql, dan caddy (opsional, HTTPS otomatis). Konfigurasi dibaca dari file .env.
 #
-# Pertama kali : cp .env.docker.example .env  (isi password, APP_URL, APP_DOMAIN)  ->  docker compose up -d --build
+# Pertama kali : docker network create edge ; cp .env.docker.example .env (isi password, APP_URL) ; docker compose up -d --build
 # Update kode  : ./deploy.sh
 #
 # Port & nama sengaja dibedakan dari OneClick (app 8081, mysql 3308, container oneclick_cc_*) supaya
-# kedua proyek bisa berjalan di server yang sama. Port 80/443 hanya dipakai Caddy bila profile "caddy"
-# diaktifkan (COMPOSE_PROFILES=caddy); jangan aktifkan bila port itu sudah dipakai proyek lain di server.
+# kedua proyek bisa berjalan di server yang sama.
+# Pintu depan (HTTPS):
+#  - Server berisi BANYAK aplikasi (disarankan): Caddy bersama di OneClick/infra/edge meneruskan domain ke container
+#    oneclick_cc_app lewat jaringan Docker "edge"; di .env kosongkan COMPOSE_PROFILES. Daftarkan domain di
+#    infra/edge/sites/control-center.caddy (contoh: control-center.caddy.example).
+#  - Server hanya untuk aplikasi ini: COMPOSE_PROFILES=caddy memakai Caddy di compose ini (port 80/443 harus kosong).
 
 # Resolver DNS publik IPv4. Tanpa ini container memakai resolver server apa adanya; di sebagian VPS resolver itu
 # IPv6 yang tidak terjangkau dari container ("network is unreachable"), sehingga Caddy gagal meminta sertifikat.
@@ -39,6 +43,7 @@ services:
       start_period: 60s
     networks:
       - control-center
+      - edge   # reverse proxy bersama (OneClick/infra/edge) meneruskan domain ke container ini
 
   caddy:
     image: caddy:2-alpine
@@ -89,6 +94,10 @@ services:
 networks:
   control-center:
     driver: bridge
+  # Jaringan bersama dengan reverse proxy. Buat sekali per server: docker network create edge
+  edge:
+    name: edge
+    external: true
 
 volumes:
   mysql_data:
