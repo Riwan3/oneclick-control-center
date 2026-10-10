@@ -1,15 +1,22 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
-import { useEffectiveAccess } from '../composables/useEffectiveAccess';
+import { useModulesOverview } from '../composables/useModulesOverview';
 import UiButton from '../components/ui/UiButton.vue';
+import UiBadge from '../components/ui/UiBadge.vue';
 import SiteStatusSummary from '../components/sites/SiteStatusSummary.vue';
 import SiteToolbar from '../components/sites/SiteToolbar.vue';
 import SiteGrid from '../components/sites/SiteGrid.vue';
-import { sites as allSites } from '../data/mock/sites';
 
 const auth = useAuthStore();
-const { canAccessSite } = useEffectiveAccess();
+
+// Reuses the same resolver chain Modules.vue/Monitoring.vue/Dashboard.vue
+// already consume — useModulesOverview()'s own filteredSites is every
+// access-filtered site (its internal `search` stays empty here) already
+// carrying a real effectiveModules map per site, resolved from
+// governance (useSiteConfiguration) + runtime (data/mock/sites.js), not
+// a second computation. Sites.vue never re-derives module status itself.
+const { filteredSites: sitesWithModuleStatus } = useModulesOverview();
 
 const search = ref('');
 const statusFilter = ref('all');
@@ -18,7 +25,7 @@ const moduleFilter = ref('all');
 // EFFECTIVE ACCESS: management/view only ever see the sites they were
 // explicitly granted — everything downstream (summary, toolbar filters,
 // grid) is derived from this, not from the raw mock catalogue.
-const sites = computed(() => allSites.filter((site) => canAccessSite(site.code)));
+const sites = computed(() => sitesWithModuleStatus.value);
 
 const filteredSites = computed(() => {
     const term = search.value.trim().toLowerCase();
@@ -46,12 +53,15 @@ const filteredSites = computed(() => {
             <div>
                 <h1 class="text-page-title">Sites</h1>
                 <p class="text-body mt-2 max-w-2xl">
-                    Manage and monitor OneClick sites across PPA Group.
+                    Enterprise site registry and operational identity overview.
                 </p>
             </div>
 
-            <!-- UI-only placeholder — does not create a site or call any API. -->
-            <UiButton v-if="auth.can('site_manage')">Add Site</UiButton>
+            <div class="flex items-center gap-3">
+                <UiBadge variant="neutral" class="px-3 py-1 text-xs">{{ sites.length }} Sites Registered</UiBadge>
+                <!-- UI-only placeholder — does not create a site or call any API. -->
+                <UiButton v-if="auth.can('site_manage')">Add Site</UiButton>
+            </div>
         </div>
 
         <!-- Summary always reflects all sites, independent of the toolbar filters below. -->

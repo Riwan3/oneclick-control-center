@@ -6,9 +6,18 @@ import Dashboard from '../pages/Dashboard.vue';
 import Sites from '../pages/Sites.vue';
 import SiteDetail from '../pages/SiteDetail.vue';
 import Modules from '../pages/Modules.vue';
+import Kpi from '../pages/Kpi.vue';
 import Deployments from '../pages/Deployments.vue';
 import ModuleObservatory from '../pages/ModuleObservatory.vue';
 import Baseline from '../pages/Baseline.vue';
+import ChangeLog from '../pages/ChangeLog.vue';
+import SiteConfiguration from '../pages/SiteConfiguration.vue';
+import ApiOverview from '../pages/ApiOverview.vue';
+import SiteApi from '../pages/SiteApi.vue';
+import ControlCenterApi from '../pages/ControlCenterApi.vue';
+import ApiConfiguration from '../pages/ApiConfiguration.vue';
+import Releases from '../pages/Releases.vue';
+import ReleaseDetail from '../pages/ReleaseDetail.vue';
 import Monitoring from '../pages/Monitoring.vue';
 import Audit from '../pages/Audit.vue';
 import Users from '../pages/Users.vue';
@@ -57,6 +66,12 @@ const routes = [
         meta: { title: 'Modules' },
     },
     {
+        path: '/kpi',
+        name: 'kpi',
+        component: Kpi,
+        meta: { title: 'KPI' },
+    },
+    {
         path: '/deployments',
         name: 'deployments',
         component: Deployments,
@@ -69,10 +84,37 @@ const routes = [
         meta: { title: 'Module Observatory' },
     },
     {
-        path: '/baseline',
-        name: 'baseline',
-        component: Baseline,
-        meta: { title: 'Master Baseline' },
+        path: '/site-configuration',
+        name: 'site-configuration',
+        component: SiteConfiguration,
+        meta: { title: 'Site Configuration' },
+    },
+    {
+        // API Integration UI/UX foundation — no real API is connected;
+        // see ApiOverview.vue's header badge. Sub-pages are reached via
+        // ApiIntegrationTabs.vue, not additional sidebar entries.
+        path: '/api-integration',
+        name: 'api-integration',
+        component: ApiOverview,
+        meta: { title: 'API Integration' },
+    },
+    {
+        path: '/api-integration/site-api',
+        name: 'api-integration-site-api',
+        component: SiteApi,
+        meta: { title: 'Site API' },
+    },
+    {
+        path: '/api-integration/control-center-api',
+        name: 'api-integration-control-center-api',
+        component: ControlCenterApi,
+        meta: { title: 'Control Center API' },
+    },
+    {
+        path: '/api-integration/configuration',
+        name: 'api-integration-configuration',
+        component: ApiConfiguration,
+        meta: { title: 'API Configuration' },
     },
     {
         path: '/monitoring',
@@ -91,6 +133,32 @@ const routes = [
         name: 'users',
         component: Users,
         meta: { title: 'User Management' },
+    },
+    {
+        path: '/baseline',
+        name: 'baseline',
+        component: Baseline,
+        meta: { title: 'Master Baseline' },
+    },
+    {
+        path: '/changelog',
+        name: 'changelog',
+        component: ChangeLog,
+        meta: { title: 'Change Log' },
+    },
+    {
+        // STEP 3R-2 — Release Version + Changelog Foundation.
+        path: '/releases',
+        name: 'releases',
+        component: Releases,
+        meta: { title: 'Release Management' },
+    },
+    {
+        path: '/releases/:id',
+        name: 'release-detail',
+        component: ReleaseDetail,
+        props: true,
+        meta: { title: 'Release Detail' },
     },
     {
         // Not in the sidebar — reached via the topbar notification bell.

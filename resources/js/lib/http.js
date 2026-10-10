@@ -13,8 +13,23 @@ function getCsrfToken() {
     return match ? decodeURIComponent(match[1]) : null;
 }
 
+// Centralized session-expiry hook. http.js deliberately never imports
+// stores/auth.js (that would create a cycle: http.js -> auth store ->
+// authService.js -> http.js) — instead it exposes this one registration
+// point, and resources/js/app.js (the composition root, which already
+// imports both the auth store and this module) supplies the actual
+// handler once at startup. http.js itself stays a dumb transport layer
+// with no app-specific decisions (e.g. whether the current user was
+// actually authenticated) — that judgment lives in the registered
+// handler, not here.
+let sessionExpiredHandler = null;
+
+export function registerSessionExpiredHandler(handler) {
+    sessionExpiredHandler = handler;
+}
+
 export async function apiFetch(url, options = {}) {
-    return fetch(url, {
+    const response = await fetch(url, {
         ...options,
         credentials: 'same-origin',
         headers: {
@@ -24,6 +39,14 @@ export async function apiFetch(url, options = {}) {
             ...(options.headers ?? {}),
         },
     });
+
+    if (response.status === 401) {
+        sessionExpiredHandler?.('session_expired');
+    } else if (response.status === 419) {
+        sessionExpiredHandler?.('csrf_expired');
+    }
+
+    return response;
 }
 
 // Convenience wrapper that also parses the JSON body (if any) and never
@@ -43,7 +66,7 @@ export async function apiJson(url, options = {}) {
  * Classifies HTTP response status codes into consistent categories.
  */
 export function getHttpErrorCategory(status) {
-    if (status === 401) return 'auth';
+    if (status === 401 || status === 419) return 'auth';
     if (status === 403) return 'forbidden';
     if (status === 422) return 'validation';
     if (status >= 500) return 'server';
@@ -56,6 +79,9 @@ export function getHttpErrorCategory(status) {
 export function parseHttpErrorMessage(status, data) {
     if (status === 401) {
         return 'Your session has expired. Please log in again.';
+    }
+    if (status === 419) {
+        return 'Your session has expired or the page was open too long. Please log in again.';
     }
     if (status === 403) {
         return 'You do not have permission to access this resource.';

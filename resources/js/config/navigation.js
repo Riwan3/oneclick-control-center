@@ -34,11 +34,14 @@ export const navigationItems = [
         order: 1,
     },
     {
+        // Grouped under a "Dashboard" section heading, matching the
+        // Performance/Governance/System sections below — Home (above,
+        // order 1) stays its own unlabeled top item, unchanged.
         id: 'dashboard',
         label: 'Dashboard',
         route: '/dashboard',
         icon: 'dashboard',
-        section: null,
+        section: 'Dashboard',
         module: null,
         enabled: true,
         capability: 'overview',
@@ -50,7 +53,7 @@ export const navigationItems = [
         label: 'Sites',
         route: '/sites',
         icon: 'sites',
-        section: null,
+        section: 'Dashboard',
         module: null,
         enabled: true,
         capability: 'site_view',
@@ -62,7 +65,7 @@ export const navigationItems = [
         label: 'Modules',
         route: '/modules',
         icon: 'layers',
-        section: null,
+        section: 'Dashboard',
         module: null,
         enabled: true,
         capability: 'module_view',
@@ -72,11 +75,11 @@ export const navigationItems = [
     {
         id: 'kpi',
         label: 'KPI',
-        route: null,
+        route: '/kpi',
         icon: 'monitoring',
         section: 'Performance',
         module: null,
-        enabled: false,
+        enabled: true,
         capability: 'kpi',
         sites: 'all',
         order: 10,
@@ -99,7 +102,7 @@ export const navigationItems = [
         route: null,
         icon: 'briefcase',
         section: 'Operations',
-        module: 'one-manpower',
+        module: 'one-power',
         enabled: false,
         capability: 'module_view',
         sites: 'selected',
@@ -144,23 +147,29 @@ export const navigationItems = [
     {
         id: 'change-log',
         label: 'Change Log',
-        route: null,
+        route: '/changelog',
         icon: 'history',
         section: 'Governance',
         module: null,
-        enabled: false,
+        enabled: true,
         capability: 'change_log_view',
         sites: 'all',
         order: 31,
     },
     {
+        // STEP 3R-2 — Release Version + Changelog Foundation. This was
+        // an inert placeholder (route: null, enabled: false) reserved
+        // for exactly this feature since STEP 3F; repurposed here
+        // rather than adding a second, competing nav item. capability
+        // stays version_view (unchanged) — read access for
+        // super_admin+management, matching the Deployments page.
         id: 'version',
-        label: 'Version',
-        route: null,
+        label: 'Releases',
+        route: '/releases',
         icon: 'tag',
         section: 'Governance',
         module: null,
-        enabled: false,
+        enabled: true,
         capability: 'version_view',
         sites: 'all',
         order: 32,
@@ -232,5 +241,41 @@ export const navigationItems = [
         capability: 'module_view',
         sites: 'all',
         order: 42,
+    },
+    {
+        // Site Configuration Foundation — new capability
+        // site_configuration_manage (true only for super_admin in
+        // config/roles.js), gating the whole page the same way
+        // user_manage already gates Users.vue. No new authorization
+        // mechanism; reuses the 'layers' icon already used for Modules.
+        id: 'site-configuration',
+        label: 'Site Configuration',
+        route: '/site-configuration',
+        icon: 'layers',
+        section: 'System',
+        module: null,
+        enabled: true,
+        capability: 'site_configuration_manage',
+        sites: 'all',
+        order: 43,
+    },
+    {
+        // API Integration UI/UX foundation — reuses site_configuration_manage,
+        // the closest existing capability for a system/infrastructure
+        // configuration concern (matching its System-section sibling,
+        // Site Configuration). No new capability was created. The three
+        // conceptual sub-pages (Site API, Control Center API, API
+        // Configuration) are reached via in-page tabs on this page, not
+        // additional sidebar entries — see ApiIntegrationTabs.vue.
+        id: 'api-integration',
+        label: 'API Integration',
+        route: '/api-integration',
+        icon: 'package',
+        section: 'System',
+        module: null,
+        enabled: true,
+        capability: 'site_configuration_manage',
+        sites: 'all',
+        order: 44,
     },
 ];

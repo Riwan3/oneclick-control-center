@@ -26,6 +26,8 @@ export const roles = [
             version_view: true,
             user_manage: true,
             settings_manage: true,
+            site_configuration_manage: true,
+            release_manage: true,
         },
     },
     {
@@ -46,6 +48,8 @@ export const roles = [
             version_view: true,
             user_manage: false,
             settings_manage: false,
+            site_configuration_manage: false,
+            release_manage: false,
         },
     },
     {
@@ -66,6 +70,8 @@ export const roles = [
             version_view: false,
             user_manage: false,
             settings_manage: false,
+            site_configuration_manage: false,
+            release_manage: false,
         },
     },
 ];

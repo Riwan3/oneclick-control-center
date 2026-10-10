@@ -1,12 +1,12 @@
-// Conceptual OneClick module catalogue.
+// Central OneClick module catalogue.
 //
-// This is a static lookup of module identity/labels only. Which modules
-// are actually enabled is a per-site concern — see the mock `modules` map
-// on each site in stores/site.js. Real module metadata (versioning,
-// entitlements, etc.) will come from the backend once it exists.
-export const modules = [
-    { key: 'one-manpower', label: 'One-Manpower', description: 'Workforce and manpower management.' },
-    { key: 'one-fleet', label: 'One-Fleet', description: 'Fleet and heavy equipment management.' },
-    { key: 'one-dms', label: 'One-DMS', description: 'Document management system.' },
-    { key: 'one-qcc', label: 'One-QCC', description: 'Quality control circle tracking.' },
-];
+// Derives the official 8-module catalogue directly from the Master Baseline
+// Registry (data/mock/baselineRegistry.js). No duplicate module definitions are
+// maintained here.
+import { baselineModules } from '../data/mock/baselineRegistry';
+
+export const modules = baselineModules.map((mod) => ({
+    key: mod.module_key,
+    label: mod.label,
+    description: mod.description || `${mod.label} module.`,
+}));

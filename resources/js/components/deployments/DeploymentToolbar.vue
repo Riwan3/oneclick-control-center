@@ -42,25 +42,39 @@ const fieldClasses =
                 @input="$emit('update:search', $event.target.value)"
             />
 
-            <select
-                :value="versionStatus"
-                :class="fieldClasses"
-                @change="$emit('update:versionStatus', $event.target.value)"
-            >
-                <option v-for="opt in versionStatusOptions" :key="opt.value" :value="opt.value">
+            <div class="flex flex-wrap gap-2">
+                <button
+                    v-for="opt in versionStatusOptions"
+                    :key="opt.value"
+                    type="button"
+                    class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                    :class="
+                        versionStatus === opt.value
+                            ? 'bg-primary text-white'
+                            : 'border border-border bg-surface text-text-secondary hover:bg-background'
+                    "
+                    @click="$emit('update:versionStatus', opt.value)"
+                >
                     {{ opt.label }}
-                </option>
-            </select>
+                </button>
+            </div>
 
-            <select
-                :value="deploymentStatus"
-                :class="fieldClasses"
-                @change="$emit('update:deploymentStatus', $event.target.value)"
-            >
-                <option v-for="opt in deploymentStatusOptions" :key="opt.value" :value="opt.value">
+            <div class="flex flex-wrap gap-2">
+                <button
+                    v-for="opt in deploymentStatusOptions"
+                    :key="opt.value"
+                    type="button"
+                    class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                    :class="
+                        deploymentStatus === opt.value
+                            ? 'bg-primary text-white'
+                            : 'border border-border bg-surface text-text-secondary hover:bg-background'
+                    "
+                    @click="$emit('update:deploymentStatus', opt.value)"
+                >
                     {{ opt.label }}
-                </option>
-            </select>
+                </button>
+            </div>
         </div>
     </UiCard>
 </template>

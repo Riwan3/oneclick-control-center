@@ -25,11 +25,11 @@ export const executiveKpis = [
     },
     {
         id: 'active-modules',
-        title: 'Active Modules',
-        value: 42,
+        title: 'Active Deployments',
+        value: 20,
         unit: '',
         icon: 'dashboard',
-        trend: { direction: 'flat', label: 'No change vs last week' },
+        trend: { direction: 'flat', label: 'Active site-module deployments' },
     },
     {
         id: 'system-health',

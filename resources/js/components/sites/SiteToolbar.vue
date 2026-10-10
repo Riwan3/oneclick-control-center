@@ -35,16 +35,27 @@ const fieldClasses =
                 @input="$emit('update:search', $event.target.value)"
             />
 
-            <select
-                :value="status"
-                :class="fieldClasses"
-                @change="$emit('update:status', $event.target.value)"
-            >
-                <option value="all">All statuses</option>
-                <option value="online">Online</option>
-                <option value="warning">Warning</option>
-                <option value="offline">Offline</option>
-            </select>
+            <div class="flex flex-wrap gap-2">
+                <button
+                    v-for="option in [
+                        { value: 'all', label: 'All' },
+                        { value: 'online', label: 'Online' },
+                        { value: 'warning', label: 'Warning' },
+                        { value: 'offline', label: 'Offline' },
+                    ]"
+                    :key="option.value"
+                    type="button"
+                    class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                    :class="
+                        status === option.value
+                            ? 'bg-primary text-white'
+                            : 'border border-border bg-surface text-text-secondary hover:bg-background'
+                    "
+                    @click="$emit('update:status', option.value)"
+                >
+                    {{ option.label }}
+                </button>
+            </div>
 
             <select
                 :value="module"

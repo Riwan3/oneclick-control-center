@@ -1,13 +1,13 @@
 // Derives the Module Ecosystem Overview entirely from the existing
-// sources of truth — config/modules.js (module catalogue) and
-// data/mock/sites.js (per-site module flags). Nothing here duplicates
-// or hardcodes adoption numbers; every count is computed so it stays
-// consistent with the Home dashboard, Sites, and Site Detail pages,
-// which derive their own module figures from the same sites.js records.
+// sources of truth — config/modules.js (module catalogue),
+// useSiteConfiguration.js (governance policy), and data/mock/sites.js
+// (per-site operational telemetry).
 import { ref, computed } from 'vue';
 import { modules as allModules } from '../config/modules';
 import { sites as allSites } from '../data/mock/sites';
 import { useEffectiveAccess } from './useEffectiveAccess';
+import { useSiteConfiguration } from './useSiteConfiguration';
+import { resolveEffectiveModuleStatus } from '../helpers/effectiveModuleStatus';
 
 function round1(value) {
     return Math.round(value * 10) / 10;
@@ -15,29 +15,71 @@ function round1(value) {
 
 export function useModulesOverview() {
     const { canAccessSite, canAccessModule } = useEffectiveAccess();
+    const { sites: configSites } = useSiteConfiguration();
 
     const search = ref('');
     const selectedModule = ref('all');
 
-    // EFFECTIVE ACCESS: management/view only ever see the sites and
-    // modules they were explicitly granted — adoption figures, the
-    // module catalogue buttons, and the site matrix are all derived
-    // from these two filtered lists, so no unauthorized site/module
-    // data can leak through a derived count.
     const sites = computed(() => allSites.filter((site) => canAccessSite(site.code)));
     const moduleCatalog = computed(() => allModules.filter((mod) => canAccessModule(mod.key)));
 
     const totalSites = computed(() => sites.value.length);
 
+    // Map site configuration overrides by site code
+    function getSiteModuleEnabled(siteCode, moduleKey) {
+        const foundSite = configSites.value.find((s) => s.siteCode === siteCode);
+        if (!foundSite?.summary) return true; // Async fallback to baseline default (enabled)
+        // If site is present in configSites, check summary or selected site modules if available
+        // Note: configSites provides summary and siteId; find raw module configuration:
+        const modSummary = foundSite.summary;
+        // In useSiteConfiguration, effectiveSiteModules resolves siteEnabled per module
+        // We can inspect whether the site has moduleOverrides for this moduleKey
+        const overrides = new Map((foundSite.moduleOverrides ?? []).map((o) => [o.moduleKey, o.enabled]));
+        return overrides.has(moduleKey) ? overrides.get(moduleKey) : true;
+    }
+
+    const sitesWithEffectiveModules = computed(() =>
+        sites.value.map((site) => {
+            const effectiveModules = {};
+            for (const mod of moduleCatalog.value) {
+                const siteEnabled = getSiteModuleEnabled(site.code, mod.key);
+                const deployed = Boolean(site.modules?.[mod.key]);
+                const effectiveStatus = resolveEffectiveModuleStatus({ siteEnabled, deployed });
+
+                effectiveModules[mod.key] = {
+                    siteEnabled,
+                    deployed,
+                    effectiveStatus,
+                };
+            }
+            return {
+                ...site,
+                effectiveModules,
+            };
+        })
+    );
+
     const modulesWithAdoption = computed(() =>
         moduleCatalog.value.map((mod) => {
-            const activeSites = sites.value.filter((site) => Boolean(site.modules?.[mod.key])).length;
-            const inactiveSites = totalSites.value - activeSites;
-            const adoption = totalSites.value ? round1((activeSites / totalSites.value) * 100) : 0;
+            const siteStates = sitesWithEffectiveModules.value.map((s) => s.effectiveModules[mod.key]);
+
+            const configuredSites = siteStates.filter((s) => s?.siteEnabled).length;
+            const rawActiveSites = siteStates.filter((s) => s?.deployed).length;
+            const effectiveActiveSites = siteStates.filter((s) => s?.effectiveStatus === 'active').length;
+            const pendingDeploymentSites = siteStates.filter((s) => s?.effectiveStatus === 'pending').length;
+            const policyViolationSites = siteStates.filter((s) => s?.effectiveStatus === 'policy_violation').length;
+
+            const inactiveSites = totalSites.value - rawActiveSites;
+            const adoption = totalSites.value ? round1((effectiveActiveSites / totalSites.value) * 100) : 0;
 
             return {
                 ...mod,
-                activeSites,
+                configuredSites,
+                rawActiveSites,
+                effectiveActiveSites,
+                pendingDeploymentSites,
+                policyViolationSites,
+                activeSites: rawActiveSites, // Backward compatibility
                 inactiveSites,
                 totalSites: totalSites.value,
                 adoption,
@@ -46,8 +88,16 @@ export function useModulesOverview() {
     );
 
     const summary = computed(() => {
-        const activeDeployments = modulesWithAdoption.value.reduce(
-            (sum, mod) => sum + mod.activeSites,
+        const rawActiveDeployments = modulesWithAdoption.value.reduce(
+            (sum, mod) => sum + mod.rawActiveSites,
+            0
+        );
+        const effectiveActiveDeployments = modulesWithAdoption.value.reduce(
+            (sum, mod) => sum + mod.effectiveActiveSites,
+            0
+        );
+        const policyViolations = modulesWithAdoption.value.reduce(
+            (sum, mod) => sum + mod.policyViolationSites,
             0
         );
         const totalPossible = moduleCatalog.value.length * totalSites.value;
@@ -55,15 +105,18 @@ export function useModulesOverview() {
         return {
             totalModules: moduleCatalog.value.length,
             totalSites: totalSites.value,
-            activeDeployments,
-            overallAdoption: totalPossible ? round1((activeDeployments / totalPossible) * 100) : 0,
+            activeDeployments: rawActiveDeployments, // Backward compatibility
+            rawActiveDeployments,
+            effectiveActiveDeployments,
+            policyViolations,
+            overallAdoption: totalPossible ? round1((effectiveActiveDeployments / totalPossible) * 100) : 0,
         };
     });
 
     const filteredSites = computed(() => {
         const term = search.value.trim().toLowerCase();
 
-        return sites.value.filter((site) => {
+        return sitesWithEffectiveModules.value.filter((site) => {
             if (!term) return true;
 
             return (

@@ -4,21 +4,45 @@ import { useRoute, useRouter } from 'vue-router';
 import { useUiStore } from '../../stores/ui';
 import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notification';
+import { useSiteContextStore } from '../../stores/siteContext';
+import { useEffectiveAccess } from '../../composables/useEffectiveAccess';
+import { sites as allSites } from '../../data/mock/sites';
 import { notificationIcon, notificationSeverityClass } from '../../config/notificationTypes';
 import AppIcon from './AppIcon.vue';
 
 const ui = useUiStore();
 const auth = useAuthStore();
 const notifications = useNotificationStore();
+const siteContext = useSiteContextStore();
+const { canAccessSite } = useEffectiveAccess();
 const route = useRoute();
 const router = useRouter();
 
 const pageTitle = computed(() => route.meta.title ?? 'OneClick Control Center');
 const menuOpen = ref(false);
 const notifOpen = ref(false);
+const siteMenuOpen = ref(false);
+
+// Reuses the existing, real site catalogue (data/mock/sites.js) and
+// the existing access-scope rule (useEffectiveAccess) — the same
+// source and filter every other page already uses. No new site data,
+// no API call.
+const accessibleSites = computed(() => allSites.filter((site) => canAccessSite(site.code)));
+
+function toggleSiteMenu() {
+    menuOpen.value = false;
+    notifOpen.value = false;
+    siteMenuOpen.value = !siteMenuOpen.value;
+}
+
+function handleSelectSite(site) {
+    siteContext.selectSite(site ? { key: site.code, name: site.name } : null);
+    siteMenuOpen.value = false;
+}
 
 async function toggleNotifications() {
     menuOpen.value = false;
+    siteMenuOpen.value = false;
     notifOpen.value = !notifOpen.value;
     if (notifOpen.value) {
         await notifications.fetchNotifications({ perPage: 8 });
@@ -38,6 +62,7 @@ function handleNotificationClick(item) {
 
 async function handleLogout() {
     menuOpen.value = false;
+    siteMenuOpen.value = false;
     await auth.logout();
     router.push('/login');
 }
@@ -48,7 +73,8 @@ onMounted(() => {
 </script>
 
 <template>
-    <header class="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-border bg-white/80 px-6 shadow-glass backdrop-blur-xl">
+    <header class="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-border bg-white px-6 shadow-card">
+        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-maroon to-maroon-hover"></div>
         <div class="flex items-center gap-4">
             <button
                 type="button"
@@ -58,18 +84,57 @@ onMounted(() => {
                 <AppIcon :name="ui.sidebarCollapsed ? 'menu' : 'chevron-left'" />
             </button>
 
-            <h1 class="text-section-title">{{ pageTitle }}</h1>
+            <p class="text-section-title">{{ pageTitle }}</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <button
-                type="button"
-                class="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-background"
-            >
-                <span class="h-2 w-2 rounded-full bg-primary"></span>
-                All Sites
-                <AppIcon name="chevron-down" class="h-4 w-4 text-text-muted" />
-            </button>
+            <div class="relative">
+                <button
+                    type="button"
+                    class="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-background"
+                    @click="toggleSiteMenu"
+                >
+                    <span class="h-2 w-2 rounded-full bg-primary"></span>
+                    {{ siteContext.selected.name }}
+                    <AppIcon name="chevron-down" class="h-4 w-4 text-text-muted" />
+                </button>
+
+                <div v-if="siteMenuOpen" class="fixed inset-0 z-20" @click="siteMenuOpen = false"></div>
+
+                <div
+                    v-if="siteMenuOpen"
+                    class="absolute left-0 top-full z-30 mt-2 w-64 rounded-lg border border-border bg-surface shadow-elevated"
+                >
+                    <div class="border-b border-border px-4 py-3">
+                        <p class="text-sm font-semibold text-text-primary">Site Context</p>
+                        <p class="text-caption">Scope the Control Center to one site</p>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto py-1">
+                        <button
+                            type="button"
+                            class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors hover:bg-background"
+                            :class="siteContext.selected.key === 'all' ? 'font-semibold text-primary' : 'text-text-secondary'"
+                            @click="handleSelectSite(null)"
+                        >
+                            <span class="h-2 w-2 rounded-full bg-primary"></span>
+                            All Sites
+                        </button>
+
+                        <button
+                            v-for="site in accessibleSites"
+                            :key="site.code"
+                            type="button"
+                            class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors hover:bg-background"
+                            :class="siteContext.selected.key === site.code ? 'font-semibold text-primary' : 'text-text-secondary'"
+                            @click="handleSelectSite(site)"
+                        >
+                            <span class="h-2 w-2 shrink-0 rounded-full border border-border bg-neutral-soft"></span>
+                            <span class="min-w-0 truncate">{{ site.code }} — {{ site.name }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <div class="relative">
                 <button
@@ -154,7 +219,7 @@ onMounted(() => {
                 <button
                     type="button"
                     class="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-background"
-                    @click="menuOpen = !menuOpen"
+                    @click="siteMenuOpen = false; menuOpen = !menuOpen"
                 >
                     <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-primary">
                         <AppIcon name="user" class="h-4 w-4" />

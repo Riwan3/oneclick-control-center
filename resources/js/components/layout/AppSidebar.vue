@@ -12,13 +12,19 @@ const ui = useUiStore();
 const auth = useAuthStore();
 const route = useRoute();
 const { groups } = useNavigation();
+
+function isItemActive(item) {
+    if (!item.route) return false;
+    return route.path === item.route || (item.route !== '/' && route.path.startsWith(item.route + '/'));
+}
 </script>
 
 <template>
     <aside
-        class="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border bg-white/80 shadow-glass backdrop-blur-xl transition-[width] duration-200"
+        class="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border bg-white shadow-card transition-[width] duration-200"
         :class="ui.sidebarCollapsed ? 'w-20' : 'w-64'"
     >
+        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-maroon to-maroon-hover"></div>
         <div class="flex h-16 items-center gap-3 border-b border-border px-4">
             <img :src="logoUrl" alt="OneClick Logo" class="h-10 w-10 shrink-0 object-contain" />
             <div v-if="!ui.sidebarCollapsed" class="min-w-0 leading-tight">
@@ -40,12 +46,12 @@ const { groups } = useNavigation();
                         :to="item.route"
                         class="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
                         :class="[
-                            route.path === item.route ? 'bg-primary-soft text-primary hover:bg-primary-soft hover:text-primary' : '',
+                            isItemActive(item) ? 'bg-primary-soft text-primary hover:bg-primary-soft hover:text-primary' : '',
                             ui.sidebarCollapsed ? 'justify-center' : '',
                         ]"
                     >
                         <span
-                            v-if="route.path === item.route"
+                            v-if="isItemActive(item)"
                             class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-maroon"
                         ></span>
 

@@ -8,6 +8,10 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\ModuleController;
+use App\Http\Controllers\SiteConfigurationController;
+use App\Http\Controllers\ConfigurationSnapshotController;
+use App\Http\Controllers\ReleaseController;
+use App\Http\Controllers\ReleaseChangelogController;
 use Illuminate\Support\Facades\Route;
 
 // GET /login serves the SPA shell (Vue Router renders Login.vue) and is
@@ -43,10 +47,57 @@ Route::middleware('auth')->prefix('api')->group(function () {
         // ModuleController for why these are not new catalogues.
         Route::get('/sites', [SiteController::class, 'index']);
         Route::get('/modules', [ModuleController::class, 'index']);
+
+        // Site Configuration Foundation — persists per-site overrides
+        // against the (frontend-only) Master Baseline Registry. Write
+        // access restricted to super_admin only, matching the
+        // site_configuration_manage capability (true only for
+        // super_admin in config/roles.js).
+        Route::get('/site-configurations', [SiteConfigurationController::class, 'index']);
+        Route::patch('/site-configurations/{site}/modules', [SiteConfigurationController::class, 'toggleModule']);
+        Route::patch('/site-configurations/{site}/menus', [SiteConfigurationController::class, 'toggleMenu']);
+
+        // STEP 3R-1 — Configuration Snapshot Foundation. Read + create
+        // only; no PATCH/PUT/DELETE route exists for a snapshot at all,
+        // by design (see ConfigurationSnapshotController). {snapshot}
+        // binds by uuid, scoped to its parent {site} so a snapshot from
+        // one site can never be fetched through another site's URL.
+        Route::get('/configuration-snapshots/{site}', [ConfigurationSnapshotController::class, 'index']);
+        Route::post('/configuration-snapshots/{site}', [ConfigurationSnapshotController::class, 'store']);
+        // Route param is named to match Site::configurationSnapshots()
+        // — Laravel's scoped-binding resolution looks for a
+        // relationship method named after this parameter.
+        Route::get('/configuration-snapshots/{site}/{configurationSnapshot:uuid}', [ConfigurationSnapshotController::class, 'show'])
+            ->scopeBindings();
+
+        // STEP 3R-2 — Release Version + Changelog Foundation. Write
+        // access restricted to super_admin only, via the new
+        // release_manage capability (see config/roles.js) — no existing
+        // "manage" capability fit this domain. Read access is granted
+        // more broadly below (role:super_admin,management), matching
+        // version_view.
+        Route::post('/releases', [ReleaseController::class, 'store']);
+        Route::patch('/releases/{release}', [ReleaseController::class, 'update']);
+
+        // {changelog} binds by id, scoped to its parent {release} via
+        // Release::changelogs() — Laravel's scoped-binding resolution
+        // already matches this param name to that relation, no renaming
+        // needed (unlike {configurationSnapshot} above).
+        Route::post('/releases/{release}/changelogs', [ReleaseChangelogController::class, 'store']);
+        Route::patch('/releases/{release}/changelogs/{changelog}', [ReleaseChangelogController::class, 'update'])
+            ->scopeBindings();
+        Route::delete('/releases/{release}/changelogs/{changelog}', [ReleaseChangelogController::class, 'destroy'])
+            ->scopeBindings();
     });
 
     Route::middleware('role:super_admin,management')->group(function () {
         Route::get('/audit-logs', [AuditController::class, 'index']);
+
+        // Read-only — matches the existing version_view capability
+        // (also used by the Deployments page), which is true for
+        // management as well as super_admin.
+        Route::get('/releases', [ReleaseController::class, 'index']);
+        Route::get('/releases/{release}', [ReleaseController::class, 'show']);
     });
 });
 

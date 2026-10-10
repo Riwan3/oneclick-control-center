@@ -16,6 +16,19 @@ import SiteModuleComparison from '../components/module-observatory/SiteModuleCom
 const auth = useAuthStore();
 const route = useRoute();
 
+// Reads which module to observe from ?module=<key>, e.g. the "Observe"
+// link on every ModuleCard.vue (/module-observatory?module=one-dms).
+// Falls back to 'one-power' when the query param is absent, matching
+// this page's original default-visit behavior. An unrecognized or
+// unmonitored key is NOT validated against the canonical catalogue
+// here — moduleObservatoryService.getOverview() already resolves any
+// key with no matching entry in moduleObservatoryData to null (see
+// useModuleObservatory.js), which this page's own existing "Not
+// Available" branch already renders. No second catalogue lookup is
+// introduced; the existing null-coalescing is the single source of
+// "is this module actually monitored" truth.
+const requestedModuleKey = typeof route.query.module === 'string' ? route.query.module : 'one-power';
+
 const {
     loading,
     error,
@@ -30,7 +43,7 @@ const {
     lastSyncedAt,
     selectedSite,
     selectSite,
-} = useModuleObservatory('one-power');
+} = useModuleObservatory(requestedModuleKey);
 
 // Direct site selection (?site=CODE) — respects effective site access
 // exactly like SiteDetail.vue: an id that isn't in the already-filtered

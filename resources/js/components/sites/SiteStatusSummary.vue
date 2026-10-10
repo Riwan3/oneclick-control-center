@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue';
 import UiKpiCard from '../ui/UiKpiCard.vue';
-import { modules as moduleCatalog } from '../../config/modules';
 
 const props = defineProps({
     sites: {
@@ -14,27 +13,20 @@ function countByStatus(status) {
     return props.sites.filter((site) => site.status === status).length;
 }
 
-const totalUsers = computed(() => props.sites.reduce((sum, site) => sum + site.users, 0));
-
-const activeModules = computed(() =>
-    props.sites.reduce(
-        (sum, site) => sum + moduleCatalog.filter((mod) => site.modules?.[mod.key]).length,
-        0
-    )
-);
-
+// Executive Site Summary — exactly the 4 cards this page's registry
+// role calls for (site connectivity counts). Module/deployment figures
+// intentionally live on Modules.vue / Monitoring.vue via the resolver,
+// not re-derived here from raw site.modules flags.
 const kpis = computed(() => [
-    { id: 'total', title: 'Total Sites', value: props.sites.length },
-    { id: 'online', title: 'Online', value: countByStatus('online'), status: 'success', statusLabel: 'Online' },
-    { id: 'warning', title: 'Warning', value: countByStatus('warning'), status: 'warning', statusLabel: 'Warning' },
-    { id: 'offline', title: 'Offline', value: countByStatus('offline'), status: 'danger', statusLabel: 'Offline' },
-    { id: 'users', title: 'Total Users', value: totalUsers.value.toLocaleString() },
-    { id: 'modules', title: 'Active Modules', value: activeModules.value, unit: 'enabled' },
+    { id: 'total', title: 'Total Sites', value: props.sites.length, status: 'info', statusLabel: 'Registered' },
+    { id: 'online', title: 'Online Sites', value: countByStatus('online'), status: 'success', statusLabel: 'Online' },
+    { id: 'warning', title: 'Warning Sites', value: countByStatus('warning'), status: 'warning', statusLabel: 'Warning' },
+    { id: 'offline', title: 'Offline Sites', value: countByStatus('offline'), status: 'danger', statusLabel: 'Offline' },
 ]);
 </script>
 
 <template>
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <UiKpiCard
             v-for="kpi in kpis"
             :key="kpi.id"

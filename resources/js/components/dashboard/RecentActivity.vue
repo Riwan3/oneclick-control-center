@@ -23,7 +23,7 @@ const typeMeta = {
     <UiCard>
         <h3 class="text-card-title">Recent System Activity</h3>
 
-        <ul class="mt-4 space-y-3">
+        <ul v-if="activities.length" class="mt-4 space-y-3">
             <li
                 v-for="item in activities"
                 :key="item.id"
@@ -39,5 +39,6 @@ const typeMeta = {
                 <UiBadge :variant="typeMeta[item.type]?.variant ?? 'neutral'">{{ item.type }}</UiBadge>
             </li>
         </ul>
+        <p v-else class="mt-4 py-6 text-center text-body">No recent activity available.</p>
     </UiCard>
 </template>

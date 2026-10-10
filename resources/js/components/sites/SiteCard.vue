@@ -16,8 +16,19 @@ const props = defineProps({
 const statusVariant = { online: 'success', warning: 'warning', offline: 'danger' };
 const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline' };
 
-const enabledCount = computed(
-    () => moduleCatalog.filter((mod) => props.site.modules?.[mod.key]).length
+// Effective module status (governance x runtime, resolved upstream by
+// useModulesOverview()) — never a raw site.modules boolean. site.effectiveModules
+// is populated by Sites.vue from that same composable; effectiveStatus is
+// one of 'active' | 'pending' | 'disabled' | 'policy_violation'.
+const moduleStatusVariant = { active: 'success', pending: 'info', disabled: 'neutral', policy_violation: 'warning' };
+const moduleStatusLabel = { active: 'Effective Active', pending: 'Pending', disabled: 'Disabled', policy_violation: 'Policy Violation' };
+
+function moduleStatus(mod) {
+    return props.site.effectiveModules?.[mod.key]?.effectiveStatus ?? 'disabled';
+}
+
+const activeModuleCount = computed(
+    () => moduleCatalog.filter((mod) => moduleStatus(mod) === 'active').length
 );
 </script>
 
@@ -52,13 +63,13 @@ const enabledCount = computed(
                 <UiTooltip
                     v-for="mod in moduleCatalog"
                     :key="mod.key"
-                    :content="`${mod.label} — ${site.modules?.[mod.key] ? 'Enabled' : 'Not enabled'}`"
+                    :content="`${mod.label} — ${moduleStatusLabel[moduleStatus(mod)]}`"
                 >
-                    <UiBadge :variant="site.modules?.[mod.key] ? 'info' : 'neutral'">
+                    <UiBadge :variant="moduleStatusVariant[moduleStatus(mod)]">
                         {{ mod.label }}
                     </UiBadge>
                 </UiTooltip>
-                <span v-if="enabledCount === 0" class="text-caption">No modules enabled</span>
+                <span v-if="activeModuleCount === 0" class="text-caption">No effective active modules</span>
             </div>
 
             <p class="text-caption mt-auto">Last activity: {{ site.lastActivity }}</p>

@@ -95,5 +95,17 @@ export const useAuthStore = defineStore('auth', {
                 this.loading = false;
             }
         },
+
+        // Local-only counterpart to logout() — used when the server has
+        // already invalidated the session (a 401/419 mid-session, see
+        // resources/js/app.js's registerSessionExpiredHandler wiring).
+        // Does NOT call authService.logout(): that POST would itself
+        // 401/419 against an already-dead session, so there is nothing
+        // useful to await server-side — this just clears local state so
+        // the router guard treats the user as logged out.
+        clearSession() {
+            this.user = null;
+            this.authenticated = false;
+        },
     },
 });

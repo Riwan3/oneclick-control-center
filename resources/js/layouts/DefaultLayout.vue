@@ -8,7 +8,7 @@ const ui = useUiStore();
 </script>
 
 <template>
-    <div class="min-h-screen bg-background">
+    <div class="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed" style="background-image: url('/app-bg.png');">
         <AppSidebar />
 
         <div
