@@ -1,0 +1,10 @@
+# Reverse proxy opsional (profile "caddy") di depan container app.
+# APP_DOMAIN diisi -> HTTPS otomatis (Let's Encrypt) + redirect HTTP->HTTPS.
+# APP_DOMAIN kosong -> HTTP biasa di port 80.
+{$APP_DOMAIN::80} {
+	encode zstd gzip
+	request_body {
+		max_size 20MB
+	}
+	reverse_proxy app:80
+}

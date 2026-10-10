@@ -1,0 +1,97 @@
+# OneClick Control Center — produksi dengan Docker Compose.
+# Layanan: app (Nginx + PHP-FPM), mysql, dan caddy (opsional, HTTPS otomatis). Konfigurasi dibaca dari file .env.
+#
+# Pertama kali : cp .env.docker.example .env  (isi password, APP_URL, APP_DOMAIN)  ->  docker compose up -d --build
+# Update kode  : ./deploy.sh
+#
+# Port & nama sengaja dibedakan dari OneClick (app 8081, mysql 3308, container oneclick_cc_*) supaya
+# kedua proyek bisa berjalan di server yang sama. Port 80/443 hanya dipakai Caddy bila profile "caddy"
+# diaktifkan (COMPOSE_PROFILES=caddy); jangan aktifkan bila port itu sudah dipakai proyek lain di server.
+
+# Resolver DNS publik IPv4. Tanpa ini container memakai resolver server apa adanya; di sebagian VPS resolver itu
+# IPv6 yang tidak terjangkau dari container ("network is unreachable"), sehingga Caddy gagal meminta sertifikat.
+x-dns: &public-dns
+  - 1.1.1.1
+  - 8.8.8.8
+
+services:
+  app:
+    build: .
+    image: oneclick-control-center:latest
+    container_name: oneclick_cc_app
+    restart: unless-stopped
+    dns: *public-dns
+    env_file: .env
+    # Hanya bisa diakses dari server itu sendiri; dari luar lewat Caddy atau web server/reverse proxy yang sudah ada.
+    ports:
+      - "127.0.0.1:${APP_FORWARD_PORT:-8081}:80"
+    volumes:
+      - ./.env:/app/.env:ro,z
+      - app_storage:/app/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/up >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - control-center
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: oneclick_cc_caddy
+    restart: unless-stopped
+    # Aktif hanya bila COMPOSE_PROFILES=caddy di .env (port 80/443 server harus kosong).
+    profiles: ["caddy"]
+    dns: *public-dns
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro,z
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - control-center
+
+  mysql:
+    image: mysql:8.4
+    container_name: oneclick_cc_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: UTC
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "127.0.0.1:${DB_FORWARD_PORT:-3308}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - control-center
+
+networks:
+  control-center:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  app_storage:
+  caddy_data:
+  caddy_config:
