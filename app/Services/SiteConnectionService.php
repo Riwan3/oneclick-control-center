@@ -19,7 +19,7 @@ class SiteConnectionService
 {
     public function check(Site $site): Site
     {
-        if (! $site->isConnectable()) {
+        if (! $site->canPull()) {
             return $site;
         }
 
@@ -38,6 +38,34 @@ class SiteConnectionService
         } catch (Throwable $e) {
             return $this->recordFailure($site, 'Tidak dapat terhubung ke site.');
         }
+    }
+
+    /** Push mode: store a report the site sent us (same storage as a pull). */
+    public function recordReport(Site $site, array $status, ?array $activity, ?array $menus): Site
+    {
+        $site = $this->recordStatus($site, $status);
+
+        $site->forceFill([
+            'activity' => $activity ?? $site->activity,
+            'menus' => $menus ?? $site->menus,
+        ])->save();
+
+        return $site;
+    }
+
+    /** Push mode: a site that has reported before but went quiet is Offline. */
+    public function flagIfSilent(Site $site): Site
+    {
+        $staleAfter = (int) config('services.site_connection.stale_after_minutes', 15);
+
+        if ($site->last_checked_at && $site->status !== 'offline' && $site->last_checked_at->lt(now()->subMinutes($staleAfter))) {
+            $site->forceFill([
+                'status' => 'offline',
+                'last_error' => "Tidak ada laporan dari site dalam {$staleAfter} menit.",
+            ])->save();
+        }
+
+        return $site;
     }
 
     private function client(Site $site): PendingRequest

@@ -30,7 +30,15 @@ class Site extends Model
         ];
     }
 
+    // Has a token, so the site can talk to the Control Center in at least one direction.
     public function isConnectable(): bool
+    {
+        return filled($this->api_token);
+    }
+
+    // Pull mode: the Control Center can call the site (it has a URL too).
+    // Without a URL the site runs in push mode and reports to us instead.
+    public function canPull(): bool
     {
         return filled($this->base_url) && filled($this->api_token);
     }

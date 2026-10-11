@@ -68,6 +68,86 @@ class SiteConnectionTest extends TestCase
             ->assertJsonPath('data.sites.0.menus.0.id', 'dashboard');
     }
 
+    private function pushSite(): Site
+    {
+        $site = Site::create(['code' => 'PSH', 'name' => 'PT Push']);
+        $site->forceFill(['api_token' => 'push-token'])->save();
+
+        return $site;
+    }
+
+    private function report(): array
+    {
+        return [
+            'status' => [
+                'status' => 'online', 'version' => 'v2.0.0', 'environment' => 'production', 'users' => 714,
+                'modules' => ['one-power'], 'health' => ['score' => 90],
+            ],
+            'activity' => ['active_users_today' => 5, 'daily' => [], 'recent' => []],
+            'menus' => ['modules' => ['one-power' => ['version' => 'v2.0.0', 'menus' => [['id' => 'dashboard']]]]],
+        ];
+    }
+
+    public function test_push_report_with_valid_token_is_stored_without_csrf_or_session(): void
+    {
+        $this->pushSite();
+
+        $this->postJson('/api/cc/report', $this->report(), ['Authorization' => 'Bearer push-token', 'X-Site-Code' => 'psh'])
+            ->assertNoContent();
+
+        $site = Site::where('code', 'PSH')->first();
+        $this->assertSame('online', $site->status);
+        $this->assertSame('v2.0.0', $site->version);
+        $this->assertSame(714, $site->users_count);
+        $this->assertSame(90, $site->health['score']);
+        $this->assertSame(5, $site->activity['active_users_today']);
+        $this->assertSame('dashboard', $site->menus['one-power']['menus'][0]['id']);
+        $this->assertNotNull($site->last_checked_at);
+    }
+
+    public function test_push_report_rejects_bad_token_and_unknown_site_identically(): void
+    {
+        $this->pushSite();
+
+        $this->postJson('/api/cc/report', $this->report(), ['Authorization' => 'Bearer wrong', 'X-Site-Code' => 'PSH'])
+            ->assertUnauthorized();
+        $this->postJson('/api/cc/report', $this->report(), ['Authorization' => 'Bearer push-token', 'X-Site-Code' => 'NOPE'])
+            ->assertUnauthorized();
+        $this->postJson('/api/cc/report', $this->report())->assertUnauthorized();
+
+        $this->assertSame('unknown', Site::where('code', 'PSH')->first()->status);
+    }
+
+    public function test_push_report_rejects_invalid_payload(): void
+    {
+        $this->pushSite();
+
+        $this->postJson('/api/cc/report', ['status' => ['status' => 'exploded']], ['Authorization' => 'Bearer push-token', 'X-Site-Code' => 'PSH'])
+            ->assertUnprocessable();
+    }
+
+    public function test_push_site_that_stops_reporting_is_flagged_offline(): void
+    {
+        $site = $this->pushSite();
+        $site->forceFill(['status' => 'online', 'last_checked_at' => now()->subMinutes(30)])->save();
+
+        $this->artisan('sites:check')->assertSuccessful();
+
+        $site->refresh();
+        $this->assertSame('offline', $site->status);
+        $this->assertStringContainsString('Tidak ada laporan', $site->last_error);
+    }
+
+    public function test_push_site_reporting_recently_stays_online(): void
+    {
+        $site = $this->pushSite();
+        $site->forceFill(['status' => 'online', 'last_checked_at' => now()->subMinutes(3)])->save();
+
+        $this->artisan('sites:check')->assertSuccessful();
+
+        $this->assertSame('online', $site->refresh()->status);
+    }
+
     public function test_unauthorized_or_unreachable_site_is_offline_without_leaking_token(): void
     {
         Http::fake(['site.test/*' => Http::response([], 401)]);

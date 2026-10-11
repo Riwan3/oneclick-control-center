@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SiteConnectionController;
+use App\Http\Controllers\SiteReportController;
 use App\Http\Controllers\ModuleObservatoryController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\SiteConfigurationController;
@@ -29,6 +30,9 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth');
 
 // Public Health Check Endpoint
 Route::get('/api/health', HealthController::class);
+
+// Push mode: OneClick sites report their own status (bearer token + X-Site-Code).
+Route::post('/api/cc/report', [SiteReportController::class, 'store'])->middleware('throttle:30,1');
 
 Route::middleware('auth')->prefix('api')->group(function () {
     Route::get('/user', [UserController::class, 'show']);

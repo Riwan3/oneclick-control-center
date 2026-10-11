@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Di belakang reverse proxy (Caddy/Docker): percayai X-Forwarded-* agar URL & cookie memakai https.
         $middleware->trustProxies(at: '*');
 
+        // Site-to-Control-Center push reports authenticate with a bearer token, not a session.
+        $middleware->validateCsrfTokens(except: ['api/cc/report']);
+
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,
         ]);
