@@ -43,7 +43,7 @@ async function handleSubmit() {
     <div class="flex min-h-screen items-center justify-end bg-cover bg-center bg-no-repeat px-4 pr-6 sm:pr-12 md:pr-24 lg:pr-32 xl:pr-40" style="background-image: url('/login-bg.png');">
         <UiCard class="w-full max-w-[420px] shadow-2xl" padding="lg">
             <div class="mb-6 text-center">
-                <img src="/logo-oneclick.png" alt="OneClick Logo" class="mx-auto h-20 w-auto object-contain mb-3" />
+                <img src="../../images/logo-oneclick.png" alt="OneClick Logo" class="mx-auto h-20 w-auto object-contain mb-3" />
                 <h1 class="text-page-title mt-2 font-bold tracking-tight">OneClick Control Center</h1>
                 <p class="text-caption mt-1 text-text-secondary">PPA Group</p>
                 

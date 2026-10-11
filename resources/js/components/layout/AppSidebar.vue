@@ -6,7 +6,7 @@ import { useNavigation } from '../../composables/useNavigation';
 import AppIcon from './AppIcon.vue';
 import UiTooltip from '../ui/UiTooltip.vue';
 import UiBadge from '../ui/UiBadge.vue';
-import logoUrl from '../../../../Logo-Oneclick.png';
+import logoUrl from '../../../images/logo-oneclick.png';
 
 const ui = useUiStore();
 const auth = useAuthStore();
