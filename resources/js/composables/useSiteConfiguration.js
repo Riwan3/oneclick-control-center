@@ -14,7 +14,7 @@
 // does this site release", not "what may this user see." The two are
 // never combined here.
 import { ref, computed, onMounted } from 'vue';
-import { sites as mockSites } from '../data/mock/sites';
+import { sites as mockSites } from '../data/siteCatalogue';
 import { baselineModules, baselineMenus } from '../data/mock/baselineRegistry';
 import { siteConfigurationService } from '../services/siteConfigurationService';
 

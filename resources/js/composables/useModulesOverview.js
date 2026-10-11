@@ -4,7 +4,7 @@
 // (per-site operational telemetry).
 import { ref, computed } from 'vue';
 import { modules as allModules } from '../config/modules';
-import { sites as allSites } from '../data/mock/sites';
+import { sites as allSites } from '../data/siteCatalogue';
 import { useEffectiveAccess } from './useEffectiveAccess';
 import { useSiteConfiguration } from './useSiteConfiguration';
 import { resolveEffectiveModuleStatus } from '../helpers/effectiveModuleStatus';

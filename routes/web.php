@@ -7,6 +7,8 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\SiteConnectionController;
+use App\Http\Controllers\ModuleObservatoryController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\SiteConfigurationController;
 use App\Http\Controllers\ConfigurationSnapshotController;
@@ -31,6 +33,11 @@ Route::get('/api/health', HealthController::class);
 Route::middleware('auth')->prefix('api')->group(function () {
     Route::get('/user', [UserController::class, 'show']);
 
+    // Live status of connected sites, filtered to the caller's effective site access.
+    Route::get('/site-connections', [SiteConnectionController::class, 'index']);
+    Route::get('/site-connections/{site}', [SiteConnectionController::class, 'show']);
+    Route::get('/module-observatory/{moduleKey}', [ModuleObservatoryController::class, 'show']);
+
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
@@ -53,6 +60,8 @@ Route::middleware('auth')->prefix('api')->group(function () {
         // access restricted to super_admin only, matching the
         // site_configuration_manage capability (true only for
         // super_admin in config/roles.js).
+        Route::post('/site-connections/{site}/check', [SiteConnectionController::class, 'check']);
+
         Route::get('/site-configurations', [SiteConfigurationController::class, 'index']);
         Route::patch('/site-configurations/{site}/modules', [SiteConfigurationController::class, 'toggleModule']);
         Route::patch('/site-configurations/{site}/menus', [SiteConfigurationController::class, 'toggleMenu']);

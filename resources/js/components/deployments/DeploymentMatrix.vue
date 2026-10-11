@@ -7,7 +7,7 @@ defineProps({
     records: {
         type: Array,
         required: true,
-        // shape: [{ siteId, site, currentVersion, targetVersion, versionStatus, deploymentStatus, environment, lastDeployedAt, deploymentDuration }]
+        // shape: [{ siteId, site, currentVersion, targetVersion, versionStatus, deploymentStatus, lastDeployedAt }]
     },
 });
 

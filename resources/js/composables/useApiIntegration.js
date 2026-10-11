@@ -3,7 +3,7 @@
 // for this domain yet, same as KPI). Returns FOUNDATION/READINESS
 // data only — never a real connection result or fabricated telemetry.
 import { computed } from 'vue';
-import { sites as allSites } from '../data/mock/sites';
+import { sites as allSites } from '../data/siteCatalogue';
 import { useEffectiveAccess } from './useEffectiveAccess';
 import {
     siteApiConnections,

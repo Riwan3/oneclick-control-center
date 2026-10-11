@@ -6,7 +6,7 @@ defineProps({
     sites: {
         type: Array,
         required: true,
-        // shape: [{ code, status: 'success' | 'warning' | 'danger' }]
+        // shape: [{ code, status: 'success' | 'warning' | 'danger' | 'neutral' }]
     },
 });
 
@@ -14,6 +14,7 @@ const statusLabels = {
     success: 'Online',
     warning: 'Warning',
     danger: 'Offline',
+    neutral: 'Not Connected',
 };
 </script>
 

@@ -1,9 +1,9 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { apiJson } from '../lib/http';
 import { useAuthStore } from '../stores/auth';
 import { useEffectiveAccess } from '../composables/useEffectiveAccess';
-import { sites } from '../data/mock/sites';
-import { getSiteDetail } from '../data/mock/siteDetails';
+import { sites } from '../data/siteCatalogue';
 import UiCard from '../components/ui/UiCard.vue';
 import UiButton from '../components/ui/UiButton.vue';
 import UiStatus from '../components/ui/UiStatus.vue';
@@ -35,10 +35,24 @@ const site = computed(() => {
     if (!match) return null;
     return canAccessSite(match.code) ? match : null;
 });
-const detail = computed(() => (site.value ? getSiteDetail(site.value.id) : null));
 
-const statusVariant = { online: 'success', warning: 'warning', offline: 'danger' };
-const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline' };
+// Server-health breakdown and recent activity come from the detail
+// endpoint (the catalogue only carries the light list fields).
+const detail = ref(null);
+
+watch(
+    () => (site.value?.connected ? site.value.dbId : null),
+    async (dbId) => {
+        detail.value = null;
+        if (!dbId) return;
+        const { ok, data } = await apiJson(`/api/site-connections/${dbId}`);
+        if (ok) detail.value = data?.data ?? null;
+    },
+    { immediate: true }
+);
+
+const statusVariant = { online: 'success', warning: 'warning', offline: 'danger', unknown: 'neutral' };
+const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline', unknown: 'Not Connected' };
 </script>
 
 <template>
@@ -80,20 +94,21 @@ const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline' }
         </DashboardSection>
 
         <DashboardSection
-            v-if="auth.can('monitoring')"
+            v-if="auth.can('monitoring') && site.connected"
             title="Performance Overview"
-            description="Active users, module utilization, and system health trend for this site."
+            description="Login activity and server condition reported by this site."
         >
-            <SitePerformanceOverview :performance="detail.performance" />
+            <SitePerformanceOverview :daily="site.dailyActivity" :health="detail?.health ?? null" />
         </DashboardSection>
 
         <DashboardSection
-            v-if="auth.can('monitoring')"
+            v-if="auth.can('monitoring') && site.connected"
             title="Recent Activity"
-            description="Latest events for this site."
+            description="Latest logins on this site."
         >
-            <SiteRecentActivity :activities="detail.recentActivity" />
+            <SiteRecentActivity :activities="detail?.recent_activity ?? []" />
         </DashboardSection>
+
     </div>
 
     <UiCard v-else>

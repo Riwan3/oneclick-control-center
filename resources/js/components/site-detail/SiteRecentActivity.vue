@@ -7,9 +7,16 @@ defineProps({
     activities: {
         type: Array,
         required: true,
-        // shape: [{ timestamp, type, title, description, status }]
+        // shape: [{ occurred_at, type, title, description }] — from the site's login log
     },
 });
+
+const typeVariant = { activity: 'success', system: 'warning' };
+
+function formatTime(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
 
 const typeIcons = {
     system: 'monitoring',
@@ -23,7 +30,7 @@ const typeIcons = {
     <UiCard>
         <h3 class="text-card-title">Recent Activity</h3>
 
-        <ul class="mt-4 space-y-3">
+        <ul v-if="activities.length" class="mt-4 space-y-3">
             <li
                 v-for="(item, index) in activities"
                 :key="index"
@@ -35,10 +42,11 @@ const typeIcons = {
                 <div class="min-w-0 flex-1">
                     <p class="text-sm font-medium text-text-primary">{{ item.title }}</p>
                     <p class="text-caption mt-0.5">{{ item.description }}</p>
-                    <p class="text-caption mt-0.5">{{ item.timestamp }}</p>
+                    <p class="text-caption mt-0.5">{{ formatTime(item.occurred_at) }}</p>
                 </div>
-                <UiBadge :variant="item.status">{{ item.type }}</UiBadge>
+                <UiBadge :variant="typeVariant[item.type] ?? 'neutral'">{{ item.type }}</UiBadge>
             </li>
         </ul>
+        <p v-else class="text-body mt-4">No recent activity reported by this site.</p>
     </UiCard>
 </template>

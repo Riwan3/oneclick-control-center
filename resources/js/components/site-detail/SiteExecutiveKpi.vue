@@ -14,6 +14,7 @@ const statusMeta = {
     online: { status: 'success', label: 'Healthy' },
     warning: { status: 'warning', label: 'Degraded' },
     offline: { status: 'danger', label: 'Offline' },
+    unknown: { status: 'info', label: 'Not Connected' },
 };
 
 const activeModuleCount = computed(
@@ -24,8 +25,8 @@ const kpis = computed(() => [
     {
         id: 'system-health',
         title: 'System Health',
-        value: props.site.systemHealth,
-        unit: '%',
+        value: props.site.systemHealth ?? '—',
+        unit: props.site.systemHealth === null ? '' : '%',
         icon: 'monitoring',
         status: statusMeta[props.site.status]?.status,
         statusLabel: statusMeta[props.site.status]?.label,

@@ -4,7 +4,7 @@ import { useAuthStore } from '../stores/auth';
 import { useHomeDashboard } from '../composables/useHomeDashboard';
 import { useModulesOverview } from '../composables/useModulesOverview';
 import { useEffectiveAccess } from '../composables/useEffectiveAccess';
-import { sites as allSites } from '../data/mock/sites';
+import { sites as allSites } from '../data/siteCatalogue';
 
 import UiCard from '../components/ui/UiCard.vue';
 import UiBadge from '../components/ui/UiBadge.vue';
@@ -21,7 +21,7 @@ const { canAccessSite } = useEffectiveAccess();
 const { siteHealth: baseSiteHealth, recentActivity } = useHomeDashboard();
 const { modules, filteredSites, moduleCatalog } = useModulesOverview();
 
-// Enrich site health data with detailed site metadata from sites.js
+// Enrich site health data with detailed site metadata from the site catalogue
 const monitoredSites = computed(() => {
     return allSites
         .filter((site) => canAccessSite(site.code))
@@ -46,11 +46,7 @@ const offlineSitesCount = computed(
     () => monitoredSites.value.filter((s) => s.status === 'offline' || s.healthStatus === 'danger').length
 );
 
-const avgSystemHealth = computed(() => {
-    if (!monitoredSites.value.length) return 0;
-    const total = monitoredSites.value.reduce((sum, s) => sum + (s.systemHealth ?? 0), 0);
-    return (total / monitoredSites.value.length).toFixed(1);
-});
+const unknownSitesCount = computed(() => monitoredSites.value.filter((s) => s.status === 'unknown').length);
 
 const summaryKpis = computed(() => [
     {
@@ -86,12 +82,12 @@ const summaryKpis = computed(() => [
         statusLabel: offlineSitesCount.value > 0 ? `${offlineSitesCount.value} Site Unreachable` : 'All Sites Reachable',
     },
     {
-        id: 'avg-health',
-        title: 'Average System Health',
-        value: avgSystemHealth.value,
-        unit: '%',
-        status: avgSystemHealth.value >= 95 ? 'success' : 'warning',
-        statusLabel: 'Overall Health',
+        id: 'unknown-sites',
+        title: 'Not Connected',
+        value: unknownSitesCount.value,
+        unit: 'sites',
+        status: unknownSitesCount.value > 0 ? 'info' : 'success',
+        statusLabel: unknownSitesCount.value > 0 ? 'Awaiting API connection' : 'All sites connected',
     },
 ]);
 
@@ -143,7 +139,7 @@ const attentionFeed = computed(() => [
         id: `warn-${s.code}`,
         code: s.code,
         message: 'Site Warning',
-        detail: `${s.systemHealth}% system health`,
+        detail: s.lastError ?? `Last checked ${s.lastActivity}`,
         icon: 'sites',
         variant: 'warning',
         badgeLabel: 'Warning',
@@ -175,7 +171,7 @@ const totalPendingDeployments = computed(() => pendingModules.value.reduce((sum,
                 </p>
             </div>
             <UiBadge variant="info" class="px-3 py-1 text-xs">
-                System Telemetry Active (Local Feed)
+                Live from connected sites
             </UiBadge>
         </div>
 

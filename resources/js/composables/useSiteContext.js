@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import { sites as allSites } from '../data/mock/sites';
+import { sites as allSites } from '../data/siteCatalogue';
 
 const ALL_SITES_OPTION = { key: 'all', name: 'All Sites', code: 'ALL' };
 

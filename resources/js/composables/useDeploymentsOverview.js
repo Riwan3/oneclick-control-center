@@ -1,12 +1,13 @@
-// Derives the Version & Deployment Overview entirely from the existing
-// sources of truth — data/mock/deployments.js (version/deployment facts,
-// keyed by siteId) and data/mock/sites.js (site identity). Nothing here
-// duplicates site identity; every summary/distribution value is computed
-// so it stays consistent with the underlying dataset rather than being a
-// separately hardcoded number.
-import { ref, computed } from 'vue';
-import { sites as allSites } from '../data/mock/sites';
-import { deployments } from '../data/mock/deployments';
+// Derives the Version & Deployment Overview from real data: each
+// connected site's reported OneClick version (data/siteCatalogue.js) and
+// the Release catalogue (GET /api/releases) for the target version.
+// Sites with no connection have no version and are not listed.
+// Environment and last-deployed time are reported by the site itself
+// (APP_ENV and the time its current build was produced); there is no
+// per-deployment history or duration source.
+import { ref, computed, onMounted } from 'vue';
+import { sites as allSites } from '../data/siteCatalogue';
+import { releaseService } from '../services/releaseService';
 import { useEffectiveAccess } from './useEffectiveAccess';
 
 const VERSION_STATUS_OPTIONS = [
@@ -34,8 +35,34 @@ const DEPLOYMENT_STATUS_OPTIONS = [
 // - two or more minor releases behind target      -> 'behind'
 //   (e.g. target 2.5, site on 2.3.x or older)
 function parseVersion(version) {
-    const [major, minor, patch] = version.replace(/^v/, '').split('.').map(Number);
+    const [major = 0, minor = 0, patch = 0] = version.replace(/^v/, '').split('.').map((n) => Number(n) || 0);
     return { major, minor, patch };
+}
+
+function compareVersions(a, b) {
+    const x = parseVersion(a);
+    const y = parseVersion(b);
+    return x.major - y.major || x.minor - y.minor || x.patch - y.patch;
+}
+
+function highestVersion(versions) {
+    return versions.reduce((max, v) => (max === null || compareVersions(v, max) > 0 ? v : max), null);
+}
+
+// Site status -> deployment health: a site we cannot reach counts as failed.
+const DEPLOYMENT_STATUS_BY_SITE_STATUS = { online: 'healthy', warning: 'warning', offline: 'failed' };
+
+// Latest released version, shared across callers. Roles without access to
+// /api/releases simply leave this null and fall back to the highest
+// version seen on any site.
+const releasedVersion = ref(null);
+
+async function loadReleasedVersion() {
+    const { ok, data } = await releaseService.fetchReleases();
+    if (!ok) return;
+    releasedVersion.value = highestVersion(
+        (data?.data ?? []).filter((r) => r.status === 'released').map((r) => r.version)
+    );
 }
 
 function resolveVersionStatus(currentVersion, targetVersion) {
@@ -59,22 +86,27 @@ export function useDeploymentsOverview() {
     // sites they were explicitly granted access to.
     const sites = computed(() => allSites.filter((site) => canAccessSite(site.code)));
 
-    // Join deployment records with their site identity, resolved from
-    // sites.js by siteId — deployments.js never carries code/name/location.
-    // versionStatus is computed fresh from currentVersion/targetVersion
-    // here rather than trusted from stored data.
+    onMounted(loadReleasedVersion);
+
+    const targetVersion = computed(
+        () => releasedVersion.value ?? highestVersion(sites.value.filter((s) => s.connected).map((s) => s.version))
+    );
+
+    // One record per connected site that has reported a version.
     const records = computed(() =>
-        deployments
-            .map((deployment) => {
-                const site = sites.value.find((s) => s.id === deployment.siteId);
-                if (!site) return null;
-                return {
-                    ...deployment,
-                    site,
-                    versionStatus: resolveVersionStatus(deployment.currentVersion, deployment.targetVersion),
-                };
-            })
-            .filter(Boolean)
+        sites.value
+            .filter((site) => site.connected && site.version !== '—' && targetVersion.value)
+            .map((site) => ({
+                siteId: site.id,
+                site,
+                currentVersion: site.version,
+                targetVersion: targetVersion.value,
+                versionStatus: resolveVersionStatus(site.version, targetVersion.value),
+                deploymentStatus: DEPLOYMENT_STATUS_BY_SITE_STATUS[site.status] ?? 'warning',
+                environment: site.environment,
+                lastDeployedAt: site.deployedAt,
+                lastCheckedAt: site.lastCheckedAt,
+            }))
     );
 
     const summary = computed(() => {
@@ -121,7 +153,7 @@ export function useDeploymentsOverview() {
     });
 
     const recentActivity = computed(() =>
-        [...records.value].sort((a, b) => a.recencyRank - b.recencyRank).slice(0, 6)
+        [...records.value].sort((a, b) => (b.lastCheckedAt ?? '').localeCompare(a.lastCheckedAt ?? '')).slice(0, 6)
     );
 
     return {

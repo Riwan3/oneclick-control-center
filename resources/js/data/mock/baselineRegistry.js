@@ -22,12 +22,12 @@
 // but is no longer mislabeled as a baseline gap).
 //
 // One-Power's manifest is NOT re-authored here — it is imported from
-// data/mock/moduleObservatory.js's ONE_POWER_BASELINE_MENUS (itself
+// data/onePowerBaseline.js's ONE_POWER_BASELINE_MENUS (itself
 // corrected against OneClick.docx in this same pass) and reshaped to
 // this registry's menu_key/parent_key naming. There is exactly one
 // authoritative frontend One-Power baseline manifest; Module
 // Observatory and this registry both read it.
-import { ONE_POWER_BASELINE_MENUS } from './moduleObservatory';
+import { ONE_POWER_BASELINE_MENUS } from '../onePowerBaseline';
 
 export const BASELINE_VERSION = 'v2.5.0';
 
@@ -107,7 +107,7 @@ export const baselineModules = [
 // business baseline; none render "no manifest available."
 // ================================================================
 export const baselineMenus = [
-    // ---- One-Power (26 items) — reused from moduleObservatory.js ----
+    // ---- One-Power (26 items) — reused from onePowerBaseline.js ----
     ...reshapeOnePowerMenus(),
 
     // ---- One-Academy (3 items, no children) ----

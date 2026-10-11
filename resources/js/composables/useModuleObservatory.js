@@ -2,15 +2,17 @@
 // (see moduleObservatoryService.js). No API calls, no business logic in
 // ModuleObservatory.vue itself.
 import { ref, computed, onMounted } from 'vue';
-import { sites as allSites } from '../data/mock/sites';
+import { sites as allSites } from '../data/siteCatalogue';
 import { moduleObservatoryService } from '../services/moduleObservatoryService';
 import { useEffectiveAccess } from './useEffectiveAccess';
 
 /**
  * Deterministic comparison between a baseline menu manifest and a
- * site's current manifest, matched by the stable `id` field (not
- * label/route — a change to either of those, on the same id, is
- * exactly what "modified" needs to detect). No timestamps, no
+ * site's current manifest, matched by `id` (the menu's label path — see
+ * moduleObservatoryService.js). "Modified" means the same menu moved to a
+ * different parent or position; label and route are not compared because
+ * sites prefix their routes (e.g. /one-power/...) and word labels with
+ * different punctuation. No timestamps, no
  * Math.random(); a given pair of manifests always diffs the same way.
  *
  * @return {{added: array, removed: array, modified: array<{baseline, current}>}}
@@ -32,8 +34,6 @@ export function diffMenus(baselineMenus, currentMenus) {
         if (!currentMenu) continue;
 
         const changed =
-            baselineMenu.label !== currentMenu.label ||
-            baselineMenu.route !== currentMenu.route ||
             baselineMenu.parentId !== currentMenu.parentId ||
             baselineMenu.order !== currentMenu.order;
 

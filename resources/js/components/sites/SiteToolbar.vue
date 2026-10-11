@@ -42,6 +42,7 @@ const fieldClasses =
                         { value: 'online', label: 'Online' },
                         { value: 'warning', label: 'Warning' },
                         { value: 'offline', label: 'Offline' },
+                        { value: 'unknown', label: 'Not Connected' },
                     ]"
                     :key="option.value"
                     type="button"

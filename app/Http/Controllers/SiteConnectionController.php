@@ -1,0 +1,68 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Site;
+use App\Services\SiteConnectionService;
+use Illuminate\Http\Request;
+
+/**
+ * Live telemetry of connected OneClick sites, as last pulled by
+ * sites:check. The list is light (one row per site); show() adds the
+ * server-health breakdown and recent activity. Both are limited to the
+ * caller's effective site access. The api_token is never exposed.
+ */
+class SiteConnectionController extends Controller
+{
+    public function index(Request $request)
+    {
+        $allowedIds = $this->allowedSiteIds($request);
+
+        return ['data' => Site::whereIn('id', $allowedIds)->orderBy('name')->get()
+            ->map(fn (Site $site) => $this->present($site))];
+    }
+
+    public function show(Request $request, Site $site)
+    {
+        abort_unless($this->allowedSiteIds($request)->contains($site->id), 404);
+
+        return ['data' => $this->present($site) + [
+            'health' => $site->status === 'offline' ? null : $site->health,
+            'recent_activity' => $site->activity['recent'] ?? [],
+        ]];
+    }
+
+    public function check(Site $site, SiteConnectionService $connections)
+    {
+        return ['data' => $this->present($connections->check($site))];
+    }
+
+    private function allowedSiteIds(Request $request)
+    {
+        return collect($request->user()->effectiveSiteAccess()['sites'])->pluck('id');
+    }
+
+    private function present(Site $site): array
+    {
+        $reachable = $site->status !== 'offline';
+
+        return [
+            'id' => $site->id,
+            'code' => $site->code,
+            'name' => $site->name,
+            'location' => $site->location,
+            'connected' => $site->isConnectable(),
+            'status' => $site->status,
+            'version' => $site->version,
+            'environment' => $site->environment,
+            'deployed_at' => $site->deployed_at?->toIso8601String(),
+            'users' => $site->users_count,
+            'modules' => $site->modules ?? [],
+            'health_score' => $reachable ? ($site->health['score'] ?? null) : null,
+            'active_users_today' => $reachable ? ($site->activity['active_users_today'] ?? null) : null,
+            'daily_activity' => $site->activity['daily'] ?? [],
+            'last_checked_at' => $site->last_checked_at?->toIso8601String(),
+            'last_error' => $site->last_error,
+        ];
+    }
+}

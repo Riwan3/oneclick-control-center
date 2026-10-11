@@ -6,12 +6,34 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-// Minimal reference model backing per-user site access (see the
-// create_sites_table migration). Not consumed by the frontend Sites /
-// Site Detail pages yet — those still read data/mock/sites.js.
+// Backs per-user site access and the site catalogue: the frontend reads
+// it (plus the status pulled from each OneClick site) via
+// GET /api/site-connections — see SiteConnectionController.
 class Site extends Model
 {
-    protected $fillable = ['code', 'name'];
+    protected $fillable = ['code', 'name', 'location'];
+
+    // Connection fields (base_url, api_token, status, ...) are set only
+    // through SiteConnectionService / sites:connect, never mass-assigned.
+    protected $hidden = ['api_token'];
+
+    protected function casts(): array
+    {
+        return [
+            'api_token' => 'encrypted',
+            'modules' => 'array',
+            'health' => 'array',
+            'activity' => 'array',
+            'menus' => 'array',
+            'deployed_at' => 'datetime',
+            'last_checked_at' => 'datetime',
+        ];
+    }
+
+    public function isConnectable(): bool
+    {
+        return filled($this->base_url) && filled($this->api_token);
+    }
 
     public function users(): BelongsToMany
     {

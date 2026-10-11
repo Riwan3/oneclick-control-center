@@ -7,7 +7,7 @@
 // currently empty).
 import { computed } from 'vue';
 import { modules as canonicalModules } from '../config/modules';
-import { sites as allSites } from '../data/mock/sites';
+import { sites as allSites } from '../data/siteCatalogue';
 import {
     kpiCatalogue,
     KPI_READINESS_STATES,

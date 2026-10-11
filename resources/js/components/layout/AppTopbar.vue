@@ -6,7 +6,7 @@ import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notification';
 import { useSiteContextStore } from '../../stores/siteContext';
 import { useEffectiveAccess } from '../../composables/useEffectiveAccess';
-import { sites as allSites } from '../../data/mock/sites';
+import { sites as allSites } from '../../data/siteCatalogue';
 import { notificationIcon, notificationSeverityClass } from '../../config/notificationTypes';
 import AppIcon from './AppIcon.vue';
 

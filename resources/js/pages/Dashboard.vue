@@ -32,19 +32,30 @@ const totalSitesCount = computed(() => siteHealth.value.length);
 const onlineSitesCount = computed(() => siteHealth.value.filter((s) => s.status === 'success').length);
 const warningSitesCount = computed(() => siteHealth.value.filter((s) => s.status === 'warning').length);
 const offlineSitesCount = computed(() => siteHealth.value.filter((s) => s.status === 'danger').length);
-const systemHealthKpi = computed(() => executiveKpis.value.find((k) => k.id === 'system-health'));
+const connectedSitesCount = computed(() => executiveKpis.value.find((k) => k.id === 'connected-sites')?.value ?? 0);
 
 // EXECUTIVE KPI STRIP — Average System Health, Online Sites, Effective
 // Active Deployments (with Raw Active shown as context, never merged
 // into one number), Governance Exceptions, KPI Readiness.
+const systemHealthValue = computed(() => executiveKpis.value.find((k) => k.id === 'system-health')?.value ?? null);
+const activeUsersToday = computed(() => executiveKpis.value.find((k) => k.id === 'active-users-today')?.value ?? 0);
+
 const executiveSummaryKpis = computed(() => [
     {
         id: 'system-health',
         title: 'Average System Health',
-        value: systemHealthKpi.value?.value ?? 0,
-        unit: '%',
-        status: systemHealthKpi.value?.status ?? 'success',
-        statusLabel: systemHealthKpi.value?.statusLabel ?? 'All systems normal',
+        value: systemHealthValue.value ?? '—',
+        unit: systemHealthValue.value === null ? '' : '%',
+        status: systemHealthValue.value === null ? 'neutral' : systemHealthValue.value >= 70 ? 'success' : 'warning',
+        statusLabel: systemHealthValue.value === null ? 'No site reports health yet' : 'Reported by site servers',
+    },
+    {
+        id: 'registered-users',
+        title: 'Registered Users',
+        value: executiveKpis.value.find((k) => k.id === 'total-users')?.value ?? 0,
+        unit: 'users',
+        status: 'info',
+        statusLabel: `${activeUsersToday.value} active today`,
     },
     {
         id: 'online-sites',
@@ -122,7 +133,7 @@ const policyViolationFeed = computed(() => {
 
 const siteHealthFeed = computed(() =>
     siteHealth.value
-        .filter((s) => s.status !== 'success')
+        .filter((s) => s.status === 'warning' || s.status === 'danger')
         .map((s) => ({
             id: `site-${s.code}`,
             code: s.code,
@@ -154,15 +165,15 @@ const attentionIconClass = {
                     connected PPA sites.
                 </p>
             </div>
-            <UiBadge variant="info" class="px-3 py-1 text-xs">System Telemetry Active (Local Feed)</UiBadge>
+            <UiBadge variant="info" class="px-3 py-1 text-xs">Live from connected sites</UiBadge>
         </div>
 
         <!-- EXECUTIVE KPI STRIP -->
         <DashboardSection
             title="Executive KPIs"
-            description="Ecosystem-wide status across all connected sites — updated within approximately 10 seconds of the underlying mock data changing."
+            description="Ecosystem-wide status across all connected sites."
         >
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                 <UiKpiCard
                     v-for="kpi in executiveSummaryKpis"
                     :key="kpi.id"
@@ -204,8 +215,8 @@ const attentionIconClass = {
                         </div>
                     </div>
                     <div class="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
-                        <span class="text-caption">Average System Health</span>
-                        <span class="text-sm font-semibold text-text-primary">{{ systemHealthKpi?.value ?? 0 }}%</span>
+                        <span class="text-caption">Connected Sites</span>
+                        <span class="text-sm font-semibold text-text-primary">{{ connectedSitesCount }} / {{ totalSitesCount }}</span>
                     </div>
                 </UiCard>
 

@@ -1,24 +1,8 @@
-// Mock data for the Module Observatory (STEP 3R).
+// Reference (baseline) menu manifest for One-Power — the official business
+// baseline, NOT site data. What each site actually runs comes from the API
+// (GET /api/module-observatory/{moduleKey}); the Module Observatory diffs
+// the two. Moved out of data/mock/ because nothing here is mock.
 //
-// This is a DIFFERENT concept from config/modules.js — that file remains
-// the sole, unchanged catalogue of Control Center modules
-// (one-manpower/one-fleet/one-dms/one-qcc). "Observed application" here
-// means an external ADW application/module this observability layer
-// watches the configuration structure of. One-Power is the first
-// prototype; it is deliberately NOT added to config/modules.js.
-//
-// Site identity (code/name/location/etc.) is NOT duplicated here — every
-// entry below is joined against data/mock/sites.js by `siteId` in
-// composables/useModuleObservatory.js, exactly like
-// composables/useDeploymentsOverview.js already joins deployments.js the
-// same way. This file owns only observatory-specific facts: One-Power's
-// own version lineage (a separate, non-contradicting lineage from the
-// OneClick platform version in sites.js/deployments.js — see
-// useModuleObservatory.js for why) and its sidebar/menu manifest.
-//
-// All values are static/deterministic — no Math.random(), no runtime
-// timestamps. `lastSyncedAt` is a fixed display string.
-
 // BASELINE MENU MANIFEST — One-Power's reference sidebar structure.
 //
 // CORRECTED against the official OneClick.docx business baseline (see
@@ -85,80 +69,3 @@ export const ONE_POWER_BASELINE_MENUS = [
     { id: 'coaching-clinic', label: 'Coaching Clinic', parentId: null, order: 11, route: '/coaching-clinic', status: 'active' },
     { id: 'coaching-clinic-data-coaching-karyawan', label: 'Data Coaching Karyawan (Coaching Clinic V1)', parentId: 'coaching-clinic', order: 1, route: '/coaching-clinic/data-coaching-karyawan', status: 'active' },
 ];
-
-// One-Power's own version lineage — intentionally distinct numbering
-// from the OneClick platform version in data/mock/sites.js (e.g.
-// 'v2.4.1'), so this can never be mistaken for, or contradict, the
-// Deployments page's version source of truth. This is a different
-// application entirely; it simply happens to also have a version.
-const ONE_POWER_BASELINE_VERSION = 'v3.1.0';
-
-// Six sites cover the required prototype scenarios; the other PPA sites
-// simply don't run One-Power yet — not every observed application is
-// necessarily deployed everywhere, matching how config/modules.js
-// per-site module flags already work.
-export const moduleObservatoryData = {
-    'one-power': {
-        moduleKey: 'one-power',
-        moduleName: 'One-Power',
-        baseline: {
-            version: ONE_POWER_BASELINE_VERSION,
-            menus: ONE_POWER_BASELINE_MENUS,
-        },
-        lastSyncedAt: '24 Aug 2026, 09:00',
-        sites: [
-            // 1. Fully synced.
-            {
-                siteId: 'bib',
-                version: ONE_POWER_BASELINE_VERSION,
-                menus: ONE_POWER_BASELINE_MENUS,
-            },
-            // 2. Updated version, same configuration as baseline.
-            {
-                siteId: 'mhu',
-                version: 'v3.2.0',
-                menus: ONE_POWER_BASELINE_MENUS,
-            },
-            // 3. Added sidebar item.
-            {
-                siteId: 'sks',
-                version: ONE_POWER_BASELINE_VERSION,
-                menus: [
-                    ...ONE_POWER_BASELINE_MENUS,
-                    {
-                        id: 'operator-performance',
-                        label: 'Operator Performance',
-                        parentId: null,
-                        order: 12,
-                        route: '/operator-performance',
-                        status: 'active',
-                    },
-                ],
-            },
-            // 4. Removed sidebar item. 'mor' is a leaf item, so removing
-            // it can't orphan any child node (unlike a parent such as
-            // 'coaching-clinic', which now has one).
-            {
-                siteId: 'wara',
-                version: ONE_POWER_BASELINE_VERSION,
-                menus: ONE_POWER_BASELINE_MENUS.filter((menu) => menu.id !== 'mor'),
-            },
-            // 5. Modified sidebar item (relabeled + route changed, same id).
-            {
-                siteId: 'mip',
-                version: ONE_POWER_BASELINE_VERSION,
-                menus: ONE_POWER_BASELINE_MENUS.map((menu) =>
-                    menu.id === 'roster'
-                        ? { ...menu, label: 'Roster Management', route: '/roster-management' }
-                        : menu
-                ),
-            },
-            // 6. Not synced — no manifest has ever been received.
-            {
-                siteId: 'ba',
-                version: null,
-                menus: null,
-            },
-        ],
-    },
-};

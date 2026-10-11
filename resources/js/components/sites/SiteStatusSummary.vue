@@ -22,11 +22,12 @@ const kpis = computed(() => [
     { id: 'online', title: 'Online Sites', value: countByStatus('online'), status: 'success', statusLabel: 'Online' },
     { id: 'warning', title: 'Warning Sites', value: countByStatus('warning'), status: 'warning', statusLabel: 'Warning' },
     { id: 'offline', title: 'Offline Sites', value: countByStatus('offline'), status: 'danger', statusLabel: 'Offline' },
+    { id: 'unknown', title: 'Not Connected', value: countByStatus('unknown'), status: 'info', statusLabel: 'No connection yet' },
 ]);
 </script>
 
 <template>
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <UiKpiCard
             v-for="kpi in kpis"
             :key="kpi.id"

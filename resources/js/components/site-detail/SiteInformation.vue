@@ -46,7 +46,7 @@ const activeModuleCount = computed(
                 </dd>
             </div>
             <div class="sm:col-span-2 lg:col-span-3">
-                <dt class="text-label">Last Activity</dt>
+                <dt class="text-label">Last Checked</dt>
                 <dd class="mt-1 text-sm font-medium text-text-primary">{{ site.lastActivity }}</dd>
             </div>
         </dl>

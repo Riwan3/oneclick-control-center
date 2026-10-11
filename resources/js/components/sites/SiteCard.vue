@@ -13,8 +13,8 @@ const props = defineProps({
     },
 });
 
-const statusVariant = { online: 'success', warning: 'warning', offline: 'danger' };
-const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline' };
+const statusVariant = { online: 'success', warning: 'warning', offline: 'danger', unknown: 'neutral' };
+const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline', unknown: 'Not Connected' };
 
 // Effective module status (governance x runtime, resolved upstream by
 // useModulesOverview()) — never a raw site.modules boolean. site.effectiveModules
@@ -51,7 +51,7 @@ const activeModuleCount = computed(
                 </div>
                 <div>
                     <p class="text-label">Health</p>
-                    <p class="mt-1 text-sm font-semibold text-text-primary">{{ site.systemHealth }}%</p>
+                    <p class="mt-1 text-sm font-semibold text-text-primary">{{ site.systemHealth === null ? '—' : site.systemHealth + '%' }}</p>
                 </div>
                 <div>
                     <p class="text-label">Version</p>
@@ -72,7 +72,7 @@ const activeModuleCount = computed(
                 <span v-if="activeModuleCount === 0" class="text-caption">No effective active modules</span>
             </div>
 
-            <p class="text-caption mt-auto">Last activity: {{ site.lastActivity }}</p>
+            <p class="text-caption mt-auto">Last checked: {{ site.lastActivity }}</p>
         </UiCard>
     </router-link>
 </template>
