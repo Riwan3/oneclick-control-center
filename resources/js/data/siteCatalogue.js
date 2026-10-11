@@ -44,6 +44,8 @@ function toSite(row) {
         name: row.name,
         location: row.location ?? '—',
         connected: row.connected,
+        mode: row.mode,
+        baseUrl: row.base_url ?? '',
         status: row.connected ? row.status : 'unknown',
         version: row.version ?? '—',
         users: row.users ?? 0,

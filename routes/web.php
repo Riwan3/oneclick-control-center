@@ -9,6 +9,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SiteConnectionController;
 use App\Http\Controllers\SiteReportController;
+use App\Http\Controllers\SiteManagementController;
 use App\Http\Controllers\ModuleObservatoryController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\SiteConfigurationController;
@@ -59,12 +60,20 @@ Route::middleware('auth')->prefix('api')->group(function () {
         Route::get('/sites', [SiteController::class, 'index']);
         Route::get('/modules', [ModuleController::class, 'index']);
 
+        // Site registry + per-site API token (site_manage, super_admin only).
+        Route::post('/sites', [SiteManagementController::class, 'store']);
+        Route::patch('/sites/{site}', [SiteManagementController::class, 'update']);
+        Route::delete('/sites/{site}', [SiteManagementController::class, 'destroy']);
+        Route::post('/sites/{site}/token', [SiteManagementController::class, 'issueToken']);
+
+        // Manual connection check for one site.
+        Route::post('/site-connections/{site}/check', [SiteConnectionController::class, 'check']);
+
         // Site Configuration Foundation — persists per-site overrides
         // against the (frontend-only) Master Baseline Registry. Write
         // access restricted to super_admin only, matching the
         // site_configuration_manage capability (true only for
         // super_admin in config/roles.js).
-        Route::post('/site-connections/{site}/check', [SiteConnectionController::class, 'check']);
 
         Route::get('/site-configurations', [SiteConfigurationController::class, 'index']);
         Route::patch('/site-configurations/{site}/modules', [SiteConfigurationController::class, 'toggleModule']);

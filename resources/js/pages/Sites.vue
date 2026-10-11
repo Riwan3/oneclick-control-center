@@ -7,6 +7,9 @@ import UiBadge from '../components/ui/UiBadge.vue';
 import SiteStatusSummary from '../components/sites/SiteStatusSummary.vue';
 import SiteToolbar from '../components/sites/SiteToolbar.vue';
 import SiteGrid from '../components/sites/SiteGrid.vue';
+import SiteManagement from '../components/sites/SiteManagement.vue';
+
+const showManagement = ref(false);
 
 const auth = useAuthStore();
 
@@ -59,10 +62,13 @@ const filteredSites = computed(() => {
 
             <div class="flex items-center gap-3">
                 <UiBadge variant="neutral" class="px-3 py-1 text-xs">{{ sites.length }} Sites Registered</UiBadge>
-                <!-- UI-only placeholder — does not create a site or call any API. -->
-                <UiButton v-if="auth.can('site_manage')">Add Site</UiButton>
+                <UiButton v-if="auth.can('site_manage')" @click="showManagement = !showManagement">
+                    {{ showManagement ? 'Close' : 'Manage Sites' }}
+                </UiButton>
             </div>
         </div>
+
+        <SiteManagement v-if="showManagement && auth.can('site_manage')" />
 
         <!-- Summary always reflects all sites, independent of the toolbar filters below. -->
         <SiteStatusSummary :sites="sites" />

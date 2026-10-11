@@ -18,8 +18,11 @@ class SiteConnectionController extends Controller
     {
         $allowedIds = $this->allowedSiteIds($request);
 
+        // base_url is only needed by the super admin's site editor.
+        $isAdmin = $request->user()->role === 'super_admin';
+
         return ['data' => Site::whereIn('id', $allowedIds)->orderBy('name')->get()
-            ->map(fn (Site $site) => $this->present($site))];
+            ->map(fn (Site $site) => $this->present($site) + ($isAdmin ? ['base_url' => $site->base_url] : []))];
     }
 
     public function show(Request $request, Site $site)
@@ -52,6 +55,8 @@ class SiteConnectionController extends Controller
             'name' => $site->name,
             'location' => $site->location,
             'connected' => $site->isConnectable(),
+            // pull: we call the site; push: the site reports to us; none: no token yet.
+            'mode' => $site->canPull() ? 'pull' : ($site->isConnectable() ? 'push' : 'none'),
             'status' => $site->status,
             'version' => $site->version,
             'environment' => $site->environment,
