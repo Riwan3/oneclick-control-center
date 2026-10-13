@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Site;
+use App\Services\SiteConfigPayload;
 use Illuminate\Http\Request;
 
 /**
@@ -17,12 +18,16 @@ class ModuleObservatoryController extends Controller
     {
         $allowedIds = collect($request->user()->effectiveSiteAccess()['sites'])->pluck('id');
 
+        // Sites report menus under their own module keys (e.g. one-core), the
+        // baseline uses its own (one-core-value).
+        $siteKey = SiteConfigPayload::MODULE_TO_SITE[$moduleKey] ?? $moduleKey;
+
         $sites = Site::whereIn('id', $allowedIds)->whereNotNull('menus')->orderBy('name')->get()
-            ->filter(fn (Site $site) => isset($site->menus[$moduleKey]))
+            ->filter(fn (Site $site) => isset($site->menus[$siteKey]))
             ->map(fn (Site $site) => [
                 'code' => $site->code,
-                'version' => $site->menus[$moduleKey]['version'] ?? null,
-                'menus' => $site->menus[$moduleKey]['menus'] ?? null,
+                'version' => $site->menus[$siteKey]['version'] ?? null,
+                'menus' => $site->menus[$siteKey]['menus'] ?? null,
             ])
             ->values();
 

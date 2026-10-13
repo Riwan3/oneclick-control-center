@@ -26,6 +26,8 @@ class ToggleSiteMenuConfigRequest extends FormRequest
         return [
             'module_key' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
             'menu_key' => ['required', 'string', 'max:150', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
+            // The label is what a OneClick site matches the menu on (key names differ per system).
+            'menu_label' => ['nullable', 'string', 'max:255'],
             'enabled' => ['required', 'boolean'],
         ];
     }

@@ -15,8 +15,9 @@ function labelForModule(moduleKey) {
     return baselineModules.find((mod) => mod.module_key === moduleKey)?.label ?? moduleKey;
 }
 
-function labelForMenu(menuKey) {
-    return baselineMenus.find((menu) => menu.menu_key === menuKey)?.label ?? menuKey;
+// Menu keys are unique per module only (several modules have a 'dashboard').
+function labelForMenu(moduleKey, menuKey) {
+    return baselineMenus.find((menu) => menu.module_key === moduleKey && menu.menu_key === menuKey)?.label ?? menuKey;
 }
 
 export function useConfigurationSnapshots() {
@@ -95,7 +96,7 @@ export function useConfigurationSnapshots() {
             .filter((menu) => menu.moduleKey === moduleKey)
             .map((menu) => ({
                 id: menu.menuKey,
-                label: labelForMenu(menu.menuKey),
+                label: labelForMenu(moduleKey, menu.menuKey),
                 parentId: parentByKey.get(menu.menuKey) ?? null,
                 order: orderByKey.get(menu.menuKey) ?? 0,
                 status: menu.enabled ? 'active' : 'inactive',

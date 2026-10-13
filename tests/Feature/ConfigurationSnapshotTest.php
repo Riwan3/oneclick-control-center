@@ -103,7 +103,7 @@ class ConfigurationSnapshotTest extends TestCase
 
         $response = $this->actingAs($admin)->postJson("/api/configuration-snapshots/{$this->bib->id}");
         $response->assertCreated();
-        $response->assertJsonPath('data.moduleCount', 7); // 8 baseline - 1 disabled
+        $response->assertJsonPath('data.moduleCount', 8); // 9 baseline - 1 disabled
 
         $uuid = $response->json('data.id');
         $detail = $this->actingAs($admin)->getJson("/api/configuration-snapshots/{$this->bib->id}/{$uuid}");
@@ -124,17 +124,17 @@ class ConfigurationSnapshotTest extends TestCase
     {
         $admin = $this->superAdmin();
 
-        // Disable a leaf menu ('mor', a standalone leaf).
+        // Disable a leaf menu ('quartal-operator-report', a standalone leaf).
         $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/menus", [
             'module_key' => 'one-power',
-            'menu_key' => 'mor',
+            'menu_key' => 'quartal-operator-report',
             'enabled' => false,
         ])->assertNoContent();
 
         // Disable BOTH children of 'roster' -> the parent must derive to disabled.
         $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/menus", [
             'module_key' => 'one-power',
-            'menu_key' => 'roster-departement',
+            'menu_key' => 'roster-departemen',
             'enabled' => false,
         ])->assertNoContent();
         $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/menus", [
@@ -146,15 +146,15 @@ class ConfigurationSnapshotTest extends TestCase
         $response = $this->actingAs($admin)->postJson("/api/configuration-snapshots/{$this->bib->id}");
         $response->assertCreated();
         // 72 baseline - mor - roster (derived, both children disabled)
-        // - roster-departement - roster-personal = 68
-        $response->assertJsonPath('data.menuCount', 68);
+        // - roster-departemen - roster-personal = 99
+        $response->assertJsonPath('data.menuCount', 99);
 
         $uuid = $response->json('data.id');
         $detail = $this->actingAs($admin)->getJson("/api/configuration-snapshots/{$this->bib->id}/{$uuid}");
-        $menus = collect($detail->json('data.menus'))->keyBy('menuKey');
+        $menus = collect($detail->json('data.menus'))->where('moduleKey', 'one-power')->keyBy('menuKey');
 
-        $this->assertFalse($menus['mor']['enabled']);
-        $this->assertFalse($menus['roster-departement']['enabled']);
+        $this->assertFalse($menus['quartal-operator-report']['enabled']);
+        $this->assertFalse($menus['roster-departemen']['enabled']);
         $this->assertFalse($menus['roster-personal']['enabled']);
         $this->assertFalse($menus['roster']['enabled'], 'Parent must derive to disabled when all children are disabled.');
         // Untouched leaf sibling of roster stays enabled.
@@ -196,7 +196,7 @@ class ConfigurationSnapshotTest extends TestCase
         $admin = $this->superAdmin();
 
         $created = $this->actingAs($admin)->postJson("/api/configuration-snapshots/{$this->bib->id}");
-        $created->assertJsonPath('data.moduleCount', 8);
+        $created->assertJsonPath('data.moduleCount', 9);
         $uuid = $created->json('data.id');
 
         // Disable a module AFTER the snapshot was taken.
@@ -206,7 +206,7 @@ class ConfigurationSnapshotTest extends TestCase
         ])->assertNoContent();
 
         $detail = $this->actingAs($admin)->getJson("/api/configuration-snapshots/{$this->bib->id}/{$uuid}");
-        $detail->assertJsonPath('data.moduleCount', 8);
+        $detail->assertJsonPath('data.moduleCount', 9);
         $this->assertContains(
             ['moduleKey' => 'one-gmp', 'enabled' => true],
             $detail->json('data.modules'),
@@ -219,7 +219,7 @@ class ConfigurationSnapshotTest extends TestCase
     {
         $admin = $this->superAdmin();
 
-        $this->actingAs($admin)->postJson("/api/configuration-snapshots/{$this->bib->id}")->assertJsonPath('data.moduleCount', 8);
+        $this->actingAs($admin)->postJson("/api/configuration-snapshots/{$this->bib->id}")->assertJsonPath('data.moduleCount', 9);
 
         $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/modules", [
             'module_key' => 'one-setting',
@@ -228,7 +228,7 @@ class ConfigurationSnapshotTest extends TestCase
 
         $second = $this->actingAs($admin)->postJson("/api/configuration-snapshots/{$this->bib->id}");
         $second->assertJsonPath('data.snapshotNumber', 2);
-        $second->assertJsonPath('data.moduleCount', 7);
+        $second->assertJsonPath('data.moduleCount', 8);
     }
 
     // 10. First snapshot remains unchanged after second snapshot.
@@ -246,7 +246,7 @@ class ConfigurationSnapshotTest extends TestCase
         $this->actingAs($admin)->postJson("/api/configuration-snapshots/{$this->bib->id}")->assertCreated();
 
         $firstAfter = $this->actingAs($admin)->getJson("/api/configuration-snapshots/{$this->bib->id}/{$firstUuid}");
-        $firstAfter->assertJsonPath('data.moduleCount', 8);
+        $firstAfter->assertJsonPath('data.moduleCount', 9);
         $firstAfter->assertJsonPath('data.snapshotNumber', 1);
     }
 
@@ -258,8 +258,8 @@ class ConfigurationSnapshotTest extends TestCase
         $response = $this->actingAs($admin)->postJson("/api/configuration-snapshots/{$this->bib->id}");
         $snapshot = ConfigurationSnapshot::where('uuid', $response->json('data.id'))->firstOrFail();
 
-        $this->assertSame(8, $snapshot->modules()->count());
-        $this->assertSame(72, $snapshot->menus()->count());
+        $this->assertSame(9, $snapshot->modules()->count());
+        $this->assertSame(103, $snapshot->menus()->count());
         $this->assertDatabaseHas('configuration_snapshot_modules', [
             'snapshot_id' => $snapshot->id,
             'module_key' => 'one-power',

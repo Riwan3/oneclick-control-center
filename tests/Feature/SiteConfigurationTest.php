@@ -145,7 +145,7 @@ class SiteConfigurationTest extends TestCase
 
         $response = $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/menus", [
             'module_key' => 'one-power',
-            'menu_key' => 'mor',
+            'menu_key' => 'quartal-operator-report',
             'enabled' => false,
         ]);
         $response->assertNoContent();
@@ -153,7 +153,7 @@ class SiteConfigurationTest extends TestCase
         $this->assertDatabaseHas('site_menu_configs', [
             'site_id' => $this->bib->id,
             'module_key' => 'one-power',
-            'menu_key' => 'mor',
+            'menu_key' => 'quartal-operator-report',
             'enabled' => false,
         ]);
     }
@@ -165,20 +165,20 @@ class SiteConfigurationTest extends TestCase
 
         $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/menus", [
             'module_key' => 'one-power',
-            'menu_key' => 'mor',
+            'menu_key' => 'quartal-operator-report',
             'enabled' => false,
         ])->assertNoContent();
 
         $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/menus", [
             'module_key' => 'one-power',
-            'menu_key' => 'mor',
+            'menu_key' => 'quartal-operator-report',
             'enabled' => true,
         ])->assertNoContent();
 
         $this->assertDatabaseMissing('site_menu_configs', [
             'site_id' => $this->bib->id,
             'module_key' => 'one-power',
-            'menu_key' => 'mor',
+            'menu_key' => 'quartal-operator-report',
         ]);
     }
 

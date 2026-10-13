@@ -126,7 +126,7 @@ class SiteConfigurationController extends Controller
         } else {
             $site->menuConfigs()->updateOrCreate(
                 ['module_key' => $moduleKey, 'menu_key' => $menuKey],
-                ['enabled' => $enabled]
+                ['enabled' => $enabled, 'menu_label' => $request->validated('menu_label')]
             );
         }
 

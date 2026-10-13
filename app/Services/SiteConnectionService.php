@@ -86,6 +86,7 @@ class SiteConnectionService
             'users_count' => $data['users'] ?? null,
             'modules' => $data['modules'] ?? [],
             'health' => $data['health'] ?? null,
+            'config_sync' => $data['config_sync'] ?? null,
             'last_checked_at' => now(),
             'last_error' => null,
         ])->save();

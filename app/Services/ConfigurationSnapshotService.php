@@ -62,10 +62,10 @@ class ConfigurationSnapshotService
                 ]);
             }
 
-            foreach ($effectiveMenus as $menuKey => $menu) {
+            foreach ($effectiveMenus as $menu) {
                 $snapshot->menus()->create([
                     'module_key' => $menu['module_key'],
-                    'menu_key' => $menuKey,
+                    'menu_key' => $menu['menu_key'],
                     'enabled' => $menu['enabled'],
                 ]);
             }
@@ -104,8 +104,10 @@ class ConfigurationSnapshotService
                 continue;
             }
             $key = $menu['module_key'].'|'.$menu['menu_key'];
-            $effective[$menu['menu_key']] = [
+            // Keyed by module AND menu: menu keys are only unique per module.
+            $effective[$key] = [
                 'module_key' => $menu['module_key'],
+                'menu_key' => $menu['menu_key'],
                 'enabled' => $menuOverrides->has($key) ? (bool) $menuOverrides->get($key) : self::BASELINE_DEFAULT_ENABLED,
             ];
         }
@@ -116,10 +118,11 @@ class ConfigurationSnapshotService
             }
             $children = BaselineKeys::childrenOf($menu['module_key'], $menu['menu_key']);
             $anyChildEnabled = collect($children)->contains(
-                fn (array $child) => $effective[$child['menu_key']]['enabled'] ?? false
+                fn (array $child) => $effective[$child['module_key'].'|'.$child['menu_key']]['enabled'] ?? false
             );
-            $effective[$menu['menu_key']] = [
+            $effective[$menu['module_key'].'|'.$menu['menu_key']] = [
                 'module_key' => $menu['module_key'],
+                'menu_key' => $menu['menu_key'],
                 'enabled' => $anyChildEnabled,
             ];
         }

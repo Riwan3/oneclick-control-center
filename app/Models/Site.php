@@ -25,6 +25,7 @@ class Site extends Model
             'health' => 'array',
             'activity' => 'array',
             'menus' => 'array',
+            'config_sync' => 'array',
             'deployed_at' => 'datetime',
             'last_checked_at' => 'datetime',
         ];

@@ -1,14 +1,30 @@
 // API BOUNDARY for the Module Observatory. What each site actually runs
 // (version + menu manifest) comes from GET /api/module-observatory/{key},
 // which relays what every connected OneClick site reports. The reference
-// baseline is the official business baseline kept in the frontend
-// (data/onePowerBaseline.js) — it is the thing the sites are compared to.
+// baseline is the Master Baseline Registry kept in the frontend
+// (data/mock/baselineRegistry.js, taken from the SKS site) — it is the thing
+// the sites are compared to, for every baseline module.
 import { apiJson } from '../lib/http';
-import { ONE_POWER_BASELINE_MENUS } from '../data/onePowerBaseline';
+import { baselineModules, baselineMenus } from '../data/mock/baselineRegistry';
 
-const BASELINES = {
-    'one-power': { moduleName: 'One-Power', menus: ONE_POWER_BASELINE_MENUS },
-};
+const BASELINES = Object.fromEntries(
+    baselineModules.map((mod) => [
+        mod.module_key,
+        {
+            moduleName: mod.label,
+            menus: baselineMenus
+                .filter((menu) => menu.module_key === mod.module_key)
+                .map((menu) => ({
+                    id: menu.menu_key,
+                    label: menu.label,
+                    parentId: menu.parent_key,
+                    order: menu.order,
+                    route: null,
+                    status: menu.enabled ? 'active' : 'inactive',
+                })),
+        },
+    ])
+);
 
 function slug(label) {
     return label.toLowerCase().replace(/[^a-z0-9]+/g, '');

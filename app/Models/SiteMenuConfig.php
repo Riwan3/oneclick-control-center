@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 // composables/useSiteConfiguration.js.
 class SiteMenuConfig extends Model
 {
-    protected $fillable = ['site_id', 'module_key', 'menu_key', 'enabled'];
+    protected $fillable = ['site_id', 'module_key', 'menu_key', 'menu_label', 'enabled'];
 
     protected function casts(): array
     {

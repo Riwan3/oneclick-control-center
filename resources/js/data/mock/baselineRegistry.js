@@ -1,32 +1,28 @@
 // MASTER BASELINE REGISTRY — the governance reference for
 // MODULE -> SIDEBAR/MENU -> CHILD MENU -> ORDER -> ENABLED STATE across
-// the OneClick ecosystem. This is the "BASELINE" layer that a future
-// SITE CONFIGURATION / ROLE CONFIGURATION / RELEASE CONTROL / MONITORING
-// pipeline will compare against — none of those later layers are
-// implemented here.
+// the OneClick ecosystem. Site Configuration, Configuration Snapshots and the
+// Module Observatory all compare a site against this baseline.
 //
-// SOURCE OF TRUTH (CORRECTED)
+// SOURCE OF TRUTH
 // ================================================================
-// The official, approved OneClick Business Baseline is "OneClick.docx",
-// available in this project's context. It is authoritative for the
-// module list AND the sidebar/menu hierarchy below — this is NOT mock
-// business data. A prior version of this registry incorrectly treated
-// 9 of 10 modules as an unverifiable "mapping_gap" because no Laravel
-// config file exists in this repository; that conflated "business
-// baseline unknown" with "technical Laravel cross-check unavailable."
-// Corrected per instruction: those are two separate axes, tracked here
-// as `businessBaseline` (verified for every module below, straight from
-// OneClick.docx) and `technicalMapping` (not_connected for every module
-// — no Laravel config/one_xxx_menu.php file exists in this repository
-// to cross-check against, which remains true and is tracked honestly,
-// but is no longer mislabeled as a baseline gap).
+// The OneClick SKS site is the baseline for every other OneClick site. The
+// modules and menus below are taken from its repo: config/modules.php (module
+// list) and config/one_*_menu.php (sidebar hierarchy, order, labels). The
+// menu_key of each item is the site's own menu_key — so the ids the SKS site
+// reports through /api/cc/menus match the baseline exactly, and the Module
+// Observatory diff is clean for SKS itself.
 //
-// One-Power's manifest is NOT re-authored here — it is imported from
-// data/onePowerBaseline.js's ONE_POWER_BASELINE_MENUS (itself
-// corrected against OneClick.docx in this same pass) and reshaped to
-// this registry's menu_key/parent_key naming. There is exactly one
-// authoritative frontend One-Power baseline manifest; Module
-// Observatory and this registry both read it.
+// To follow a change on SKS: update this file, onePowerBaseline.js and the
+// key mirror app/Support/BaselineKeys.php together (BaselineKeys carries the
+// same keys, no content).
+//
+// `technicalMapping` stays 'not_connected' on every module: it records that
+// no automated cross-check of this file against the site repo exists yet.
+//
+// One-Power's manifest lives in data/onePowerBaseline.js and is reshaped here
+// to this registry's menu_key/parent_key naming. There is exactly one
+// authoritative frontend One-Power baseline manifest; Module Observatory and
+// this registry both read it.
 import { ONE_POWER_BASELINE_MENUS } from '../onePowerBaseline';
 
 export const BASELINE_VERSION = 'v2.5.0';
@@ -38,7 +34,7 @@ export const BASELINE_VERSION = 'v2.5.0';
 // the EXISTING, live Control Center user site/module ACCESS ASSIGNMENT
 // feature (User Management picker, effective module access, the
 // user_module_access pivot). It is NOT overwritten, renamed, or deleted
-// here. Its 4 keys do not match this baseline's 8 official module keys
+// here. Its 4 keys do not match this baseline's 9 module keys
 // except for 'one-dms', which coincides by name only — not confirmed to
 // be the same underlying module. This is reported, not silently
 // reconciled.
@@ -55,21 +51,21 @@ export const LEGACY_MODULE_MAPPING = [
         legacyLabel: 'One-Fleet',
         suggestedBaselineKey: null,
         confidence: 'unresolved',
-        note: 'No corresponding module found in the 8-module official baseline.',
+        note: 'No corresponding module found in the SKS baseline.',
     },
     {
         legacyKey: 'one-dms',
         legacyLabel: 'One-DMS',
         suggestedBaselineKey: 'one-dms',
         confidence: 'likely',
-        note: "Key matches exactly, but config/modules.js carries no further detail (menus, description) to confirm it is the same module as the baseline's One-DMS.",
+        note: "Key matches exactly, but config/modules.js carries no further detail (menus, description) to confirm it is the same module as the baseline's One-ICC.",
     },
     {
         legacyKey: 'one-qcc',
         legacyLabel: 'One-QCC',
         suggestedBaselineKey: null,
         confidence: 'unresolved',
-        note: 'No corresponding module found in the 8-module official baseline.',
+        note: 'No corresponding module found in the SKS baseline.',
     },
 ];
 
@@ -85,88 +81,119 @@ function reshapeOnePowerMenus() {
 }
 
 // ================================================================
-// MODULE REGISTRY — the 8 official OneClick.docx baseline modules.
+// MODULE REGISTRY — the 9 modules of the OneClick SKS site, in the order
+// its config/modules.php lists them. Keys are the baseline's own; the two
+// that differ from the site's (one-core-value, one-procedur) are translated
+// by SiteConfigPayload (to the site) and SITE_TO_BASELINE_MODULE in
+// data/siteCatalogue.js (from the site). One-Admin is not here: the SKS
+// site only has a placeholder menu for it and does not list it as a module.
 // ================================================================
-// Order matches the numbered list in OneClick.docx exactly. One-Admin
-// and One-Coal are deliberately excluded — they are not present in the
-// official baseline and were not invented.
 export const baselineModules = [
-    { module_key: 'one-power', label: 'One-Power', description: 'Workforce, roster, and operator performance management.', order: 1, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
-    { module_key: 'one-academy', label: 'One-Academy', description: null, order: 2, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
-    { module_key: 'one-core-value', label: 'One-Core&Value', description: null, order: 3, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
-    { module_key: 'one-dms', label: 'One-DMS', description: null, order: 4, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
-    { module_key: 'one-gmp', label: 'One-GMP', description: null, order: 5, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
-    { module_key: 'one-reporting', label: 'One-Reporting', description: null, order: 6, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
-    { module_key: 'one-setting', label: 'One-Setting', description: null, order: 7, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
-    { module_key: 'one-procedur', label: 'One-Procedur', description: null, order: 8, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
+    { module_key: 'one-power', label: 'One-Power', description: 'Kelola manpower, roster bulanan/harian, MPP planning, personal data operator (HM, attendance, MPR, Kimper), KPI, pembinaan, dan coaching clinic.', order: 1, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
+    { module_key: 'one-academy', label: 'One-Academy', description: 'Manajemen database training karyawan, pengajuan pelatihan, monitoring grade dan jenjang jabatan.', order: 2, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
+    { module_key: 'one-core-value', label: 'One-Core&Value', description: 'Pusat data master aplikasi, konfigurasi user, data unit, SPDK, serta daftar kontak/nomor penting.', order: 3, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
+    { module_key: 'one-dms', label: 'One-ICC', description: 'Dashboard fatigue operator (ICC), Driving Monitoring System (DMS), Berita Acara, ADAS Driver Distraction, Phone & Yawning detection, dsb.', order: 4, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
+    { module_key: 'one-gmp', label: 'One-GMP', description: 'Checklist dan penilaian Good Mining Practice (GMP) area, approval GMP, dan konfigurasi master data GMP.', order: 5, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
+    { module_key: 'one-reporting', label: 'One-Reporting', description: 'Laporan kepatuhan operasional (Operational Compliance Report), daily assignment, daily compliance, dan rekapitulasi data compliance.', order: 6, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
+    { module_key: 'one-setting', label: 'One-Setting', description: 'Pengaturan setting manpower, setting fleet, setting manpower V2, setting fleet V2, monitoring setting manpower, kesiapan operator, & daily ATR.', order: 7, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
+    { module_key: 'one-procedur', label: 'One-Procedur', description: 'Kelola prosedur operasional, activity, dan evaluasi prosedur.', order: 8, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
+    { module_key: 'one-roster', label: 'One-Roster', description: 'Roster V2: dashboard monitoring, roster per departemen, analisis harian, MONCU (monitoring cuti), dan share roster.', order: 9, enabled: true, businessBaseline: 'verified', technicalMapping: 'not_connected' },
 ];
 
 // ================================================================
-// MENU REGISTRY — full sidebar hierarchy for every module, exactly as
-// given in OneClick.docx. Every module below has a complete, verified
-// business baseline; none render "no manifest available."
+// MENU REGISTRY — the full sidebar hierarchy of every module, generated
+// from the SKS site's config/one_*_menu.php. `menu_key` is the site's own
+// menu_key, so it is unique per MODULE, not globally (several modules have
+// a 'dashboard'). Always look a menu up by (module_key, menu_key).
 // ================================================================
 export const baselineMenus = [
-    // ---- One-Power (26 items) — reused from onePowerBaseline.js ----
+    // ---- One-Power (32 items) — reused from onePowerBaseline.js ----
     ...reshapeOnePowerMenus(),
 
-    // ---- One-Academy (3 items, no children) ----
-    { menu_key: 'monitoring-grade-jabatan', module_key: 'one-academy', label: 'Monitoring Grade & Jabatan', parent_key: null, order: 1, enabled: true },
-    { menu_key: 'evaluasi-kompetensi', module_key: 'one-academy', label: 'Evaluasi Kompetensi', parent_key: null, order: 2, enabled: true },
-    { menu_key: 'best-employe', module_key: 'one-academy', label: 'Best Employe', parent_key: null, order: 3, enabled: true },
+    // ---- One-Academy (4 items, 4 top-level) ----
+    { menu_key: 'training', module_key: 'one-academy', label: 'Training', parent_key: null, order: 1, enabled: true },
+    { menu_key: 'monitoring-grade-jabatan', module_key: 'one-academy', label: 'Monitoring Grade & Jabatan', parent_key: null, order: 2, enabled: true },
+    { menu_key: 'evaluasi-kompetensi', module_key: 'one-academy', label: 'Evaluasi Kompetensi', parent_key: null, order: 3, enabled: true },
+    { menu_key: 'best-employee', module_key: 'one-academy', label: 'Best Employee', parent_key: null, order: 4, enabled: true },
 
-    // ---- One-Core&Value (4 items, no children) ----
-    { menu_key: 'user-oneclick', module_key: 'one-core-value', label: 'User Oneclick', parent_key: null, order: 1, enabled: true },
-    { menu_key: 'unit-produksi', module_key: 'one-core-value', label: 'Unit Produksi', parent_key: null, order: 2, enabled: true },
-    { menu_key: 'nomor-penting', module_key: 'one-core-value', label: 'Nomor Penting', parent_key: null, order: 3, enabled: true },
-    { menu_key: 'request-reset-password', module_key: 'one-core-value', label: 'Request Reset Password', parent_key: null, order: 4, enabled: true },
+    // ---- One-Core&Value (6 items, 6 top-level) ----
+    { menu_key: 'user', module_key: 'one-core-value', label: 'User Oneclick', parent_key: null, order: 1, enabled: true },
+    { menu_key: 'role-akses', module_key: 'one-core-value', label: 'Role & Akses', parent_key: null, order: 2, enabled: true },
+    { menu_key: 'unit', module_key: 'one-core-value', label: 'Unit Produksi', parent_key: null, order: 3, enabled: true },
+    { menu_key: 'master-spdk', module_key: 'one-core-value', label: 'Master SPDK', parent_key: null, order: 4, enabled: true },
+    { menu_key: 'nomor-penting', module_key: 'one-core-value', label: 'Nomor Penting', parent_key: null, order: 5, enabled: true },
+    { menu_key: 'request-reset-password', module_key: 'one-core-value', label: 'Request Reset Password', parent_key: null, order: 6, enabled: true },
 
-    // ---- One-DMS (3 top-level; Data ICC has 11 children = 14 items) ----
-    { menu_key: 'dashboard-dms', module_key: 'one-dms', label: 'Dashboard DMS', parent_key: null, order: 1, enabled: true },
-    { menu_key: 'formulir-dms', module_key: 'one-dms', label: 'Formulir DMS', parent_key: null, order: 2, enabled: true },
+    // ---- One-ICC (15 items, 3 top-level) ----
+    { menu_key: 'dashboard', module_key: 'one-dms', label: 'Dashboard DMS', parent_key: null, order: 1, enabled: true },
+    { menu_key: 'formulir', module_key: 'one-dms', label: 'Formulir DMS', parent_key: null, order: 2, enabled: true },
     { menu_key: 'data-icc', module_key: 'one-dms', label: 'Data ICC', parent_key: null, order: 3, enabled: true },
-    { menu_key: 'icc-deviasi-fatigue', module_key: 'one-dms', label: 'Deviasi Fatigue', parent_key: 'data-icc', order: 1, enabled: true },
-    { menu_key: 'icc-smoking', module_key: 'one-dms', label: 'Smoking', parent_key: 'data-icc', order: 2, enabled: true },
-    { menu_key: 'icc-driver-distraction', module_key: 'one-dms', label: 'Driver Distraction', parent_key: 'data-icc', order: 3, enabled: true },
-    { menu_key: 'icc-phone-detection', module_key: 'one-dms', label: 'Phone Detection', parent_key: 'data-icc', order: 4, enabled: true },
-    { menu_key: 'icc-yawning-detection', module_key: 'one-dms', label: 'Yawning Detection', parent_key: 'data-icc', order: 5, enabled: true },
-    { menu_key: 'icc-eyeblink', module_key: 'one-dms', label: 'Eyeblink', parent_key: 'data-icc', order: 6, enabled: true },
-    { menu_key: 'icc-camera-covering', module_key: 'one-dms', label: 'Camera covering', parent_key: 'data-icc', order: 7, enabled: true },
-    { menu_key: 'icc-forward-collision', module_key: 'one-dms', label: 'Forward Collision', parent_key: 'data-icc', order: 8, enabled: true },
-    { menu_key: 'icc-video-loss', module_key: 'one-dms', label: 'Video Loss', parent_key: 'data-icc', order: 9, enabled: true },
-    { menu_key: 'icc-no-driver', module_key: 'one-dms', label: 'No Driver', parent_key: 'data-icc', order: 10, enabled: true },
-    { menu_key: 'icc-abnormal-over-speed', module_key: 'one-dms', label: 'Abnormal/Over Speed', parent_key: 'data-icc', order: 11, enabled: true },
+    { menu_key: 'deviasi-fatigue', module_key: 'one-dms', label: 'Deviasi Fatigue', parent_key: 'data-icc', order: 1, enabled: true },
+    { menu_key: 'izin-fatigue', module_key: 'one-dms', label: 'Izin Fatigue', parent_key: 'data-icc', order: 2, enabled: true },
+    { menu_key: 'smoking-deviasi', module_key: 'one-dms', label: 'Smoking Deviasi', parent_key: 'data-icc', order: 3, enabled: true },
+    { menu_key: 'driver-distraction', module_key: 'one-dms', label: 'Driver Distraction', parent_key: 'data-icc', order: 4, enabled: true },
+    { menu_key: 'phone-detection', module_key: 'one-dms', label: 'Phone Detection', parent_key: 'data-icc', order: 5, enabled: true },
+    { menu_key: 'yawning-detection', module_key: 'one-dms', label: 'Yawning Detection', parent_key: 'data-icc', order: 6, enabled: true },
+    { menu_key: 'eye-blink', module_key: 'one-dms', label: 'Eye Blink', parent_key: 'data-icc', order: 7, enabled: true },
+    { menu_key: 'camera-covering', module_key: 'one-dms', label: 'Camera Covering', parent_key: 'data-icc', order: 8, enabled: true },
+    { menu_key: 'forward-collision', module_key: 'one-dms', label: 'Forward Collision', parent_key: 'data-icc', order: 9, enabled: true },
+    { menu_key: 'video-loss-alarm', module_key: 'one-dms', label: 'Video Loss Alarm', parent_key: 'data-icc', order: 10, enabled: true },
+    { menu_key: 'no-driver', module_key: 'one-dms', label: 'No Driver', parent_key: 'data-icc', order: 11, enabled: true },
+    { menu_key: 'abnormal-speed', module_key: 'one-dms', label: 'Abnormal Speed', parent_key: 'data-icc', order: 12, enabled: true },
 
-    // ---- One-GMP (6 top-level; Master GMP has 5 children = 11 items) ----
+    // ---- One-GMP (13 items, 8 top-level) ----
     { menu_key: 'dashboard-gmp', module_key: 'one-gmp', label: 'Dashboard GMP', parent_key: null, order: 1, enabled: true },
-    { menu_key: 'trend-gmp', module_key: 'one-gmp', label: 'Trend GMP', parent_key: null, order: 2, enabled: true },
+    { menu_key: 'monitoring-gmp', module_key: 'one-gmp', label: 'Monitoring GMP', parent_key: null, order: 2, enabled: true },
     { menu_key: 'gmp-area', module_key: 'one-gmp', label: 'GMP Area', parent_key: null, order: 3, enabled: true },
-    { menu_key: 'penilaian', module_key: 'one-gmp', label: 'Penilaian', parent_key: null, order: 4, enabled: true },
-    { menu_key: 'approval', module_key: 'one-gmp', label: 'Approval', parent_key: null, order: 5, enabled: true },
-    { menu_key: 'master-gmp', module_key: 'one-gmp', label: 'Master GMP', parent_key: null, order: 6, enabled: true },
-    { menu_key: 'master-gmp-mhr', module_key: 'one-gmp', label: 'MHR', parent_key: 'master-gmp', order: 1, enabled: true },
-    { menu_key: 'master-gmp-mfob', module_key: 'one-gmp', label: 'MFOB', parent_key: 'master-gmp', order: 2, enabled: true },
-    { menu_key: 'master-gmp-mfoc', module_key: 'one-gmp', label: 'MFOC', parent_key: 'master-gmp', order: 3, enabled: true },
-    { menu_key: 'master-gmp-disposal', module_key: 'one-gmp', label: 'DISPOSAL', parent_key: 'master-gmp', order: 4, enabled: true },
-    { menu_key: 'master-gmp-dewatering', module_key: 'one-gmp', label: 'DEWATERING', parent_key: 'master-gmp', order: 5, enabled: true },
+    { menu_key: 'trend-gmp', module_key: 'one-gmp', label: 'Trend GMP', parent_key: null, order: 4, enabled: true },
+    { menu_key: 'temuan-gmp', module_key: 'one-gmp', label: 'Temuan & Tindak Lanjut', parent_key: null, order: 5, enabled: true },
+    { menu_key: 'penilaian-gmp', module_key: 'one-gmp', label: 'Penilaian', parent_key: null, order: 6, enabled: true },
+    { menu_key: 'penilaian-mhr', module_key: 'one-gmp', label: 'Form MHR', parent_key: 'penilaian-gmp', order: 1, enabled: true },
+    { menu_key: 'penilaian-mfob', module_key: 'one-gmp', label: 'Form MFOB', parent_key: 'penilaian-gmp', order: 2, enabled: true },
+    { menu_key: 'penilaian-mfco', module_key: 'one-gmp', label: 'Form MFCO', parent_key: 'penilaian-gmp', order: 3, enabled: true },
+    { menu_key: 'penilaian-disposal', module_key: 'one-gmp', label: 'Form DISPOSAL', parent_key: 'penilaian-gmp', order: 4, enabled: true },
+    { menu_key: 'penilaian-dewatering', module_key: 'one-gmp', label: 'Form DEWATERING', parent_key: 'penilaian-gmp', order: 5, enabled: true },
+    { menu_key: 'approval-gmp', module_key: 'one-gmp', label: 'Approval GMP', parent_key: null, order: 7, enabled: true },
+    { menu_key: 'master-gmp', module_key: 'one-gmp', label: 'Master GMP', parent_key: null, order: 8, enabled: true },
 
-    // ---- One-Reporting (5 items, no children) ----
+    // ---- One-Reporting (8 items, 4 top-level) ----
     { menu_key: 'dashboard-compliance', module_key: 'one-reporting', label: 'Dashboard Compliance', parent_key: null, order: 1, enabled: true },
-    { menu_key: 'daily-compliance', module_key: 'one-reporting', label: 'Daily Compliance', parent_key: null, order: 2, enabled: true },
-    { menu_key: 'laporan-compliance', module_key: 'one-reporting', label: 'Laporan Compliance', parent_key: null, order: 3, enabled: true },
-    { menu_key: 'master-data-compliance', module_key: 'one-reporting', label: 'Master Data Compliance', parent_key: null, order: 4, enabled: true },
-    { menu_key: 'ojk', module_key: 'one-reporting', label: 'OJK', parent_key: null, order: 5, enabled: true },
+    { menu_key: 'compliance', module_key: 'one-reporting', label: 'Compliance', parent_key: null, order: 2, enabled: true },
+    { menu_key: 'daily-compliance', module_key: 'one-reporting', label: 'Daily Compliance', parent_key: 'compliance', order: 1, enabled: true },
+    { menu_key: 'laporan-compliance', module_key: 'one-reporting', label: 'Laporan Compliance', parent_key: 'compliance', order: 2, enabled: true },
+    { menu_key: 'setting-gl', module_key: 'one-reporting', label: 'Setting GL', parent_key: 'compliance', order: 3, enabled: true },
+    { menu_key: 'master-compliance', module_key: 'one-reporting', label: 'Master Data Compliance', parent_key: 'compliance', order: 4, enabled: true },
+    { menu_key: 'perbaikan-pasca-insiden', module_key: 'one-reporting', label: 'Perbaikan Pasca-Insiden', parent_key: null, order: 3, enabled: true },
+    { menu_key: 'ojk', module_key: 'one-reporting', label: 'OJK (Observasi Jam Kritis)', parent_key: null, order: 4, enabled: true },
 
-    // ---- One-Setting (3 top-level; Settingan has 3 children = 6 items) ----
-    { menu_key: 'settingan', module_key: 'one-setting', label: 'Settingan', parent_key: null, order: 1, enabled: true },
-    { menu_key: 'settingan-input-manpower', module_key: 'one-setting', label: 'Input Setting Manpower', parent_key: 'settingan', order: 1, enabled: true },
-    { menu_key: 'settingan-input-fleet', module_key: 'one-setting', label: 'Input Setting Fleet', parent_key: 'settingan', order: 2, enabled: true },
-    { menu_key: 'settingan-data-alokasi-manpower', module_key: 'one-setting', label: 'Data Alokasi Manpower', parent_key: 'settingan', order: 3, enabled: true },
-    { menu_key: 'monitoring-settingan-manpower', module_key: 'one-setting', label: 'Monitoring Settingan Manpower', parent_key: null, order: 2, enabled: true },
-    { menu_key: 'monitoring-setting-fleet', module_key: 'one-setting', label: 'Monitoring Setting Fleet', parent_key: null, order: 3, enabled: true },
+    // ---- One-Setting (13 items, 9 top-level) ----
+    { menu_key: 'dashboard', module_key: 'one-setting', label: 'Dashboard Setting', parent_key: null, order: 1, enabled: true },
+    { menu_key: 'setting-board', module_key: 'one-setting', label: 'Setting Board', parent_key: null, order: 2, enabled: true },
+    { menu_key: 'settingan-v2', module_key: 'one-setting', label: 'Settingan Manpower', parent_key: null, order: 3, enabled: true },
+    { menu_key: 'settingan-v2-manpower', module_key: 'one-setting', label: 'Setting Manpower', parent_key: 'settingan-v2', order: 1, enabled: true },
+    { menu_key: 'settingan-v2-monitoring-mp', module_key: 'one-setting', label: 'Monitoring Settingan Manpower', parent_key: 'settingan-v2', order: 2, enabled: true },
+    { menu_key: 'setting-fleet', module_key: 'one-setting', label: 'Setting Fleet', parent_key: null, order: 4, enabled: true },
+    { menu_key: 'setting-fleet-master', module_key: 'one-setting', label: 'Master Unit', parent_key: 'setting-fleet', order: 1, enabled: true },
+    { menu_key: 'setting-fleet-harian', module_key: 'one-setting', label: 'Setting Fleet', parent_key: 'setting-fleet', order: 2, enabled: true },
+    { menu_key: 'settingan-v2-monitoring', module_key: 'one-setting', label: 'Monitoring Settingan', parent_key: null, order: 5, enabled: true },
+    { menu_key: 'setting-gl', module_key: 'one-setting', label: 'Settingan GL', parent_key: null, order: 6, enabled: true },
+    { menu_key: 'setting-unit-support', module_key: 'one-setting', label: 'Lokasi Unit Support', parent_key: null, order: 7, enabled: true },
+    { menu_key: 'setting-dozer-pc', module_key: 'one-setting', label: 'Posisi Dozer & PC', parent_key: null, order: 8, enabled: true },
+    { menu_key: 'setting-pw-cp', module_key: 'one-setting', label: 'Password CP', parent_key: null, order: 9, enabled: true },
 
-    // ---- One-Procedur (3 items, no children) ----
-    { menu_key: 'prosedur', module_key: 'one-procedur', label: 'Prosedur', parent_key: null, order: 1, enabled: true },
-    { menu_key: 'activity', module_key: 'one-procedur', label: 'Activity', parent_key: null, order: 2, enabled: true },
-    { menu_key: 'evaluasi-prosedur', module_key: 'one-procedur', label: 'Evaluasi Prosedur', parent_key: null, order: 3, enabled: true },
+    // ---- One-Procedur (4 items, 4 top-level) ----
+    { menu_key: 'dashboard', module_key: 'one-procedur', label: 'Dashboard Procedure', parent_key: null, order: 1, enabled: true },
+    { menu_key: 'prosedur', module_key: 'one-procedur', label: 'Prosedur', parent_key: null, order: 2, enabled: true },
+    { menu_key: 'activity', module_key: 'one-procedur', label: 'Activity', parent_key: null, order: 3, enabled: true },
+    { menu_key: 'evaluasi', module_key: 'one-procedur', label: 'Evaluasi Prosedur', parent_key: null, order: 4, enabled: true },
+
+    // ---- One-Roster (8 items, 8 top-level) ----
+    { menu_key: 'dashboard', module_key: 'one-roster', label: 'Dashboard Monitoring', parent_key: null, order: 1, enabled: true },
+    { menu_key: 'monitoring-departemen', module_key: 'one-roster', label: 'Monitoring Roster Departement', parent_key: null, order: 2, enabled: true },
+    { menu_key: 'roster', module_key: 'one-roster', label: 'Roster', parent_key: null, order: 3, enabled: true },
+    { menu_key: 'analisis-harian', module_key: 'one-roster', label: 'Analisis Harian', parent_key: null, order: 4, enabled: true },
+    { menu_key: 'moncu', module_key: 'one-roster', label: 'MONCU', parent_key: null, order: 5, enabled: true },
+    { menu_key: 'moncu-monitoring', module_key: 'one-roster', label: 'MONCU Monitoring', parent_key: null, order: 6, enabled: true },
+    { menu_key: 'moncu-calendar', module_key: 'one-roster', label: 'MONCU Calendar', parent_key: null, order: 7, enabled: true },
+    { menu_key: 'share', module_key: 'one-roster', label: 'Share Roster', parent_key: null, order: 8, enabled: true },
 ];

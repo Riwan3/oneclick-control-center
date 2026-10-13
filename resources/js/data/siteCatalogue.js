@@ -16,8 +16,8 @@ export const sitesLoaded = ref(false);
 
 // Module keys the OneClick site reports -> the Master Baseline Registry
 // key the Control Center uses for the same module. Anything not listed
-// maps to itself; site modules with no baseline counterpart (e.g.
-// one-roster) are simply not part of the catalogue.
+// maps to itself; site modules with no baseline counterpart are simply
+// not part of the catalogue.
 const SITE_TO_BASELINE_MODULE = {
     'one-core': 'one-core-value',
     'one-procedure': 'one-procedur',

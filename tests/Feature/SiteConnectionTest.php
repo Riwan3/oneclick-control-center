@@ -93,7 +93,8 @@ class SiteConnectionTest extends TestCase
         $this->pushSite();
 
         $this->postJson('/api/cc/report', $this->report(), ['Authorization' => 'Bearer push-token', 'X-Site-Code' => 'psh'])
-            ->assertNoContent();
+            ->assertOk()
+            ->assertJsonStructure(['config' => ['disabled_modules', 'disabled_menus', 'unmapped_menus', 'target_version']]);
 
         $site = Site::where('code', 'PSH')->first();
         $this->assertSame('online', $site->status);

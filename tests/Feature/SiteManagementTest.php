@@ -83,7 +83,7 @@ class SiteManagementTest extends TestCase
 
         $payload = ['status' => ['status' => 'online']];
         $this->postJson('/api/cc/report', $payload, ['Authorization' => "Bearer {$old}", 'X-Site-Code' => 'ROT'])->assertUnauthorized();
-        $this->postJson('/api/cc/report', $payload, ['Authorization' => "Bearer {$new}", 'X-Site-Code' => 'ROT'])->assertNoContent();
+        $this->postJson('/api/cc/report', $payload, ['Authorization' => "Bearer {$new}", 'X-Site-Code' => 'ROT'])->assertOk();
     }
 
     public function test_non_super_admin_cannot_manage_sites(): void

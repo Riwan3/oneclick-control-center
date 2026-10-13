@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Site;
+use App\Services\SiteConfigPayload;
 use App\Services\SiteConnectionService;
 use Illuminate\Http\Request;
 
@@ -12,13 +13,15 @@ use Illuminate\Http\Request;
  * firewall in between). The site is identified by X-Site-Code and
  * authenticated with the same per-site token used for pull mode,
  * compared in constant time. Unknown site and wrong token get the same
- * 401 so site codes cannot be enumerated.
+ * 401 so site codes cannot be enumerated. The reply carries the site's
+ * configuration back (see SiteConfigPayload), which is how the Control
+ * Center talks to a site that it cannot call directly.
  */
 class SiteReportController extends Controller
 {
     private const MAX_PAYLOAD_BYTES = 512 * 1024;
 
-    public function store(Request $request, SiteConnectionService $connections)
+    public function store(Request $request, SiteConnectionService $connections, SiteConfigPayload $config)
     {
         $site = Site::where('code', strtoupper((string) $request->header('X-Site-Code')))->first();
 
@@ -38,12 +41,14 @@ class SiteReportController extends Controller
             'status.users' => ['nullable', 'integer', 'min:0'],
             'status.modules' => ['nullable', 'array'],
             'status.health' => ['nullable', 'array'],
+            'status.config_sync' => ['nullable', 'array'],
             'activity' => ['nullable', 'array'],
             'menus' => ['nullable', 'array'],
         ]);
 
         $connections->recordReport($site, $data['status'], $data['activity'] ?? null, $data['menus']['modules'] ?? null);
 
-        return response()->noContent();
+        // The reply carries the configuration back to the site (the Control Center -> site direction).
+        return response()->json(['config' => $config->forSite($site)]);
     }
 }

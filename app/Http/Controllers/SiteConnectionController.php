@@ -66,6 +66,8 @@ class SiteConnectionController extends Controller
             'health_score' => $reachable ? ($site->health['score'] ?? null) : null,
             'active_users_today' => $reachable ? ($site->activity['active_users_today'] ?? null) : null,
             'daily_activity' => $site->activity['daily'] ?? [],
+            // What the site says about applying our configuration (null until it reports).
+            'config_sync' => $site->config_sync,
             'last_checked_at' => $site->last_checked_at?->toIso8601String(),
             'last_error' => $site->last_error,
         ];

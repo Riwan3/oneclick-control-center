@@ -121,11 +121,11 @@ export function useSiteConfiguration() {
         const modules = effectiveSiteModules(siteId);
         const modulesEnabled = modules.filter((mod) => mod.siteEnabled).length;
 
-        // Menu completeness counts across ALL 72 baseline menus
+        // Menu completeness counts across ALL baseline menus (TOTAL_MENUS)
         // regardless of whether their owning module is itself enabled
         // — module state and menu state are two independent
         // dimensions (see the STEP report), so this denominator stays
-        // fixed at 72 for every site, matching the worked example.
+        // fixed for every site.
         let menusEnabled = 0;
         for (const mod of baselineModules) {
             menusEnabled += effectiveSiteMenus(siteId, mod.module_key).filter((menu) => menu.effectiveEnabled).length;

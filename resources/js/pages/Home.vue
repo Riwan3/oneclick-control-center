@@ -56,7 +56,7 @@ const today = new Date().toLocaleDateString('en-GB', {
         </DashboardSection>
 
         <DashboardSection
-            v-if="auth.can('monitoring')"
+            v-if="auth.can('monitoring') && userActivity"
             title="User Activity"
             description="Login and engagement activity across all sites."
         >
