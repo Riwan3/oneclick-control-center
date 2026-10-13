@@ -250,61 +250,44 @@ class SiteConfigurationTest extends TestCase
         $this->assertSame(1, AuditLog::count(), 'Repeating the same disable request must not add a second audit event.');
     }
 
-    // 13. Invalid/unknown module key. Determined NOT safely validatable
-    // for existence without duplicating the baseline registry (see
-    // SiteConfigurationController's doc comment) — format is still
-    // validated, and a well-formed-but-unknown key is accepted but
-    // proven inert by construction (the frontend resolver only ever
-    // iterates real baseline keys, so this row can never surface).
-    public function test_malformed_module_key_is_rejected_but_unknown_wellformed_key_is_inert(): void
+    // 13. The baseline is locked: only a module that exists in it can be configured.
+    public function test_module_key_outside_the_baseline_is_rejected(): void
     {
         $admin = $this->superAdmin();
 
-        $malformed = $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/modules", [
-            'module_key' => 'Not A Valid Key!',
-            'enabled' => false,
-        ]);
-        $malformed->assertStatus(422);
-        $this->assertDatabaseMissing('site_module_configs', ['site_id' => $this->bib->id]);
+        foreach (['Not A Valid Key!', 'one-nonexistent-module'] as $key) {
+            $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/modules", [
+                'module_key' => $key,
+                'enabled' => false,
+            ])->assertStatus(422)->assertJsonValidationErrors('module_key');
+        }
 
-        // Well-formed but not a real baseline module — accepted (the
-        // backend cannot know it isn't real without duplicating the
-        // registry), but this alone proves nothing unsafe happens: the
-        // row is a normal, isolated SiteModuleConfig row that no
-        // resolver anywhere reads unless it iterates this exact key.
-        $unknown = $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/modules", [
-            'module_key' => 'one-nonexistent-module',
-            'enabled' => false,
-        ]);
-        $unknown->assertNoContent();
-        $this->assertDatabaseHas('site_module_configs', [
-            'site_id' => $this->bib->id,
-            'module_key' => 'one-nonexistent-module',
-        ]);
+        $this->assertDatabaseMissing('site_module_configs', ['site_id' => $this->bib->id]);
     }
 
-    // 14. Same rule for menu keys.
-    public function test_malformed_menu_key_is_rejected_but_unknown_wellformed_key_is_inert(): void
+    // 14. Same lock for menus: must exist in the module's baseline, and be a leaf.
+    public function test_menu_key_outside_the_baseline_or_a_parent_menu_is_rejected(): void
     {
         $admin = $this->superAdmin();
+        $url = "/api/site-configurations/{$this->bib->id}/menus";
 
-        $malformed = $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/menus", [
-            'module_key' => 'one-power',
-            'menu_key' => 'Not Valid!',
-            'enabled' => false,
-        ]);
-        $malformed->assertStatus(422);
+        $this->actingAs($admin)->patchJson($url, ['module_key' => 'one-power', 'menu_key' => 'Not Valid!', 'enabled' => false])
+            ->assertStatus(422)->assertJsonValidationErrors('menu_key');
+        $this->actingAs($admin)->patchJson($url, ['module_key' => 'one-power', 'menu_key' => 'nonexistent-menu-item', 'enabled' => false])
+            ->assertStatus(422)->assertJsonValidationErrors('menu_key');
+        // 'dashboard' belongs to other modules, not to one-gmp: keys are per module.
+        $this->actingAs($admin)->patchJson($url, ['module_key' => 'one-gmp', 'menu_key' => 'dashboard', 'enabled' => false])
+            ->assertStatus(422)->assertJsonValidationErrors('menu_key');
+        // 'roster' is a parent in one-power: its state is derived from its children.
+        $this->actingAs($admin)->patchJson($url, ['module_key' => 'one-power', 'menu_key' => 'roster', 'enabled' => false])
+            ->assertStatus(422)->assertJsonValidationErrors('menu_key');
+        $this->actingAs($admin)->patchJson($url, ['module_key' => 'one-nonexistent-module', 'menu_key' => 'dashboard', 'enabled' => false])
+            ->assertStatus(422);
+
         $this->assertDatabaseMissing('site_menu_configs', ['site_id' => $this->bib->id]);
 
-        $unknown = $this->actingAs($admin)->patchJson("/api/site-configurations/{$this->bib->id}/menus", [
-            'module_key' => 'one-power',
-            'menu_key' => 'nonexistent-menu-item',
-            'enabled' => false,
-        ]);
-        $unknown->assertNoContent();
-        $this->assertDatabaseHas('site_menu_configs', [
-            'site_id' => $this->bib->id,
-            'menu_key' => 'nonexistent-menu-item',
-        ]);
+        // The same key is valid in the module that really has it.
+        $this->actingAs($admin)->patchJson($url, ['module_key' => 'one-roster', 'menu_key' => 'roster', 'enabled' => false])
+            ->assertNoContent();
     }
 }

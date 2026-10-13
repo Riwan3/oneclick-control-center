@@ -20,9 +20,17 @@ defineProps({
                     Central reference for the modules and sidebar structure released across
                     OneClick sites.
                 </p>
+                <p class="text-caption mt-2 max-w-2xl">
+                    Locked: this is the starting point of OneClick on every site, taken from the OneClick SKS
+                    site. It cannot be edited here — a site can only switch off baseline modules and menus
+                    in Site Configuration.
+                </p>
             </div>
 
-            <UiBadge v-if="baselineVersion" variant="neutral">Baseline {{ baselineVersion }}</UiBadge>
+            <div class="flex flex-wrap items-center gap-2">
+                <UiBadge variant="info">Locked</UiBadge>
+                <UiBadge v-if="baselineVersion" variant="neutral">Baseline {{ baselineVersion }}</UiBadge>
+            </div>
         </div>
     </UiCard>
 </template>

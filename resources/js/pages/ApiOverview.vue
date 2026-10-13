@@ -10,7 +10,9 @@ import DashboardSection from '../components/dashboard/DashboardSection.vue';
 import ApiIntegrationTabs from '../components/api-integration/ApiIntegrationTabs.vue';
 
 const auth = useAuthStore();
-const { summary, statusLabel, statusVariant } = useApiIntegration();
+const { summary, services, statusLabel, statusVariant } = useApiIntegration();
+
+const liveServices = computed(() => services.value.filter((service) => service.status === 'configured').length);
 
 // Executive API Summary — 4 cards, all derived from useApiIntegration()'s
 // summary. Nothing here is a fabricated real-world value; every count
@@ -29,8 +31,8 @@ const executiveApiSummary = computed(() => [
         title: 'Control Center APIs',
         value: summary.value.controlCenterApis,
         unit: 'catalogued',
-        status: 'info',
-        statusLabel: 'Pending Publication',
+        status: liveServices.value > 0 ? 'success' : 'info',
+        statusLabel: liveServices.value > 0 ? `${liveServices.value} live` : 'Pending Publication',
     },
     {
         id: 'configured-integrations',
@@ -50,17 +52,25 @@ const executiveApiSummary = computed(() => [
     },
 ]);
 
-// Integration Architecture — a purely conceptual pipeline. "Control
-// Center" is the only stage marked ready, because it is the only thing
-// that genuinely exists today; every other stage is an honest "not
-// built yet" placeholder, not a simulated connection.
-const architectureStages = [
-    { label: 'Site Application', status: 'Not Connected', ready: false },
-    { label: 'Site API', status: 'Not Configured', ready: false },
-    { label: 'Control Center', status: 'Foundation Ready', ready: true },
-    { label: 'Control Center API', status: 'Not Published', ready: false },
-    { label: 'Connected Site Applications', status: 'Not Connected', ready: false },
-];
+// Integration Architecture — the pipeline between sites and this Control
+// Center. Each stage's state is derived from the real connections and
+// the published services, never assumed.
+const architectureStages = computed(() => {
+    const sites = summary.value.siteApis;
+    const connected = sites > 0;
+
+    return [
+        { label: 'Site Application', status: connected ? `${sites} connected` : 'Not Connected', ready: connected },
+        { label: 'Site API', status: connected ? 'Configured' : 'Not Configured', ready: connected },
+        { label: 'Control Center', status: 'Ready', ready: true },
+        {
+            label: 'Control Center API',
+            status: liveServices.value > 0 ? `${liveServices.value} services live` : 'Not Published',
+            ready: liveServices.value > 0,
+        },
+        { label: 'Connected Site Applications', status: connected ? `${sites} receiving configuration` : 'Not Connected', ready: connected },
+    ];
+});
 
 const integrationStates = [
     { key: 'not_configured', desc: 'No connection has been configured for this integration point yet.' },
@@ -83,7 +93,9 @@ const integrationStates = [
                     API connectivity and integration management for the OneClick ecosystem.
                 </p>
             </div>
-            <UiBadge variant="neutral" class="px-3 py-1 text-xs">Integration Foundation Pending</UiBadge>
+            <UiBadge :variant="summary.siteApis > 0 ? 'success' : 'neutral'" class="px-3 py-1 text-xs">
+                {{ summary.siteApis > 0 ? `${summary.siteApis} site${summary.siteApis === 1 ? '' : 's'} connected` : 'No site connected yet' }}
+            </UiBadge>
         </div>
 
         <ApiIntegrationTabs />
@@ -104,7 +116,7 @@ const integrationStates = [
         <!-- Integration Architecture -->
         <DashboardSection
             title="Integration Architecture"
-            description="Conceptual relationship between site applications and the Control Center — no live communication occurs yet."
+            description="How site applications and the Control Center are linked, with the current state of each stage."
         >
             <UiCard variant="glass">
                 <div class="flex flex-col items-center gap-2">

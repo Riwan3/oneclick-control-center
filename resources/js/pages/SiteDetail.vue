@@ -73,10 +73,17 @@ const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline', 
                     </div>
                 </div>
 
-                <!-- Placeholders only — non-functional, no CRUD, Super Admin only. -->
+                <!-- Super Admin only. Both open the page that already does the work, with this site preselected. -->
                 <div v-if="auth.can('site_manage') || auth.can('module_manage')" class="flex gap-3">
-                    <UiButton v-if="auth.can('site_manage')" variant="secondary">Configure Site</UiButton>
-                    <UiButton v-if="auth.can('module_manage')" variant="secondary">Manage Modules</UiButton>
+                    <router-link v-if="auth.can('site_manage')" :to="{ path: '/sites', query: { manage: site.code } }">
+                        <UiButton variant="secondary">Configure Site</UiButton>
+                    </router-link>
+                    <router-link
+                        v-if="auth.can('module_manage')"
+                        :to="{ path: '/site-configuration', query: { site: site.code } }"
+                    >
+                        <UiButton variant="secondary">Manage Modules</UiButton>
+                    </router-link>
                 </div>
             </div>
         </div>

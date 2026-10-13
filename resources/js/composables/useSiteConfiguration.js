@@ -193,11 +193,14 @@ export function useSiteConfiguration() {
     async function toggleMenu(menuKey, enabled) {
         if (!selectedSite.value || !selectedModule.value) return;
         saving.value = true;
+        const moduleKey = selectedModule.value.module_key;
+        const menuLabel = baselineMenus.find((menu) => menu.module_key === moduleKey && menu.menu_key === menuKey)?.label;
         const { ok, data } = await siteConfigurationService.toggleMenu(
             selectedSite.value.siteId,
-            selectedModule.value.module_key,
+            moduleKey,
             menuKey,
-            enabled
+            enabled,
+            menuLabel
         );
         if (ok) {
             await load();

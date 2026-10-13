@@ -27,24 +27,12 @@ use App\Services\AuditLogger;
  * toggleMenu() below for the three-way branch (no-op / delete-to-revert
  * / upsert-to-deviate) this implements.
  *
- * PARENT MENU SAFETY (hardening pass): this controller does not — and,
- * without duplicating the baseline's parent/child hierarchy, cannot —
- * know whether a given menu_key is a parent or a leaf. It intentionally
- * does not reject a parent key with 422 (Task 4/5 decision: doing so
- * safely would require mirroring the hierarchy server-side, a second
- * source of truth). Instead this relies on the frontend's effective
- * resolver (useSiteConfiguration.js) being — by construction — the only
- * place effective visibility is computed, and that resolver derives a
- * parent's effective state purely from its children, never reading any
- * override row keyed to the parent itself. A stray override row for a
- * parent key is therefore always inert: written, but never observed.
- * See the STEP report for the full reasoning.
- *
- * UNKNOWN KEY SAFETY: the same inertness argument applies to any
- * syntactically valid but non-baseline module_key/menu_key — the
- * frontend resolver only ever iterates the real baseline's keys when
- * computing effective state, so an override row for a key outside that
- * set can never affect what any site actually shows.
+ * LOCKED BASELINE: the baseline itself is read-only — there is no endpoint
+ * that edits it. The requests (ToggleSite*ConfigRequest) only accept a
+ * module/menu that exists in the baseline (App\Support\BaselineKeys, the
+ * backend mirror of the frontend registry), and only LEAF menus: a parent
+ * menu's effective state is derived from its children, so it is never
+ * stored. Anything else is rejected with 422 before reaching this class.
  */
 class SiteConfigurationController extends Controller
 {

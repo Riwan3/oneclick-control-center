@@ -67,6 +67,10 @@ return [
 
     'timezone' => 'UTC',
 
+    // Local only: skip `php artisan serve` in `composer run dev` when the app is already served
+    // by Laragon (oneclick-control-center.test), so port 8000 stays free for another project.
+    'dev_without_server' => env('DEV_WITHOUT_SERVER', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

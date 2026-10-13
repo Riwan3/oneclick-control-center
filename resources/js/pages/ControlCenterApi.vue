@@ -17,17 +17,17 @@ const { services, statusLabel, statusVariant } = useApiIntegration();
             <div>
                 <h1 class="text-page-title">Control Center API</h1>
                 <p class="text-body mt-2 max-w-2xl">
-                    Control Center services prepared for site application integration.
+                    Control Center services available to site applications.
                 </p>
             </div>
-            <UiBadge variant="neutral" class="px-3 py-1 text-xs">No Endpoints Published</UiBadge>
+            <UiBadge variant="info" class="px-3 py-1 text-xs">Report endpoint live</UiBadge>
         </div>
 
         <ApiIntegrationTabs />
 
         <DashboardSection
             title="API Service Catalogue"
-            description="Control Center domains prepared for future external access — none is published as a live endpoint yet."
+            description="Site and Module Configuration are delivered to a site in the reply to its report; the other services are not published yet."
         >
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <UiCard v-for="service in services" :key="service.key" class="flex flex-col justify-between">

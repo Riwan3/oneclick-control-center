@@ -6,7 +6,6 @@ import { computed } from 'vue';
 import { sites as allSites } from '../data/siteCatalogue';
 import { useEffectiveAccess } from './useEffectiveAccess';
 import {
-    siteApiConnections,
     controlCenterApiServices,
     apiConfigurationState,
     API_INTEGRATION_LABEL,
@@ -20,7 +19,21 @@ export function useApiIntegration() {
     // does — no separate site enumeration logic.
     const accessibleSites = computed(() => allSites.filter((site) => canAccessSite(site.code)));
 
-    const siteConnections = computed(() => siteApiConnections);
+    // Real connections: every accessible site that has a token (push) or a
+    // Site URL (pull), derived from the site catalogue — never invented.
+    const siteConnections = computed(() =>
+        accessibleSites.value
+            .filter((site) => site.connected)
+            .map((site) => ({
+                id: site.dbId,
+                siteCode: site.code,
+                apiName: site.mode === 'pull' ? 'OneClick Site API (pull)' : 'OneClick Site Report (push)',
+                baseUrl: site.baseUrl || null,
+                authenticationMethod: 'Bearer Token',
+                configurationStatus: 'configured',
+                lastTested: site.lastCheckedAt,
+            }))
+    );
     const services = computed(() => controlCenterApiServices);
     const configuration = computed(() => apiConfigurationState);
 

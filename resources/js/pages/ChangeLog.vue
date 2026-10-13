@@ -100,7 +100,13 @@ const executiveSummary = computed(() => [
 
             <UiCard v-else>
                 <h3 class="text-card-title">No changes found</h3>
-                <p class="text-body mt-1">No change log entries match the selected filter.</p>
+                <p class="text-body mt-1">
+                    {{
+                        summary.total
+                            ? 'No change log entries match the selected filter.'
+                            : 'No change log entries have been recorded yet.'
+                    }}
+                </p>
             </UiCard>
         </DashboardSection>
     </div>

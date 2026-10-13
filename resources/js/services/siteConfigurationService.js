@@ -19,10 +19,12 @@ export const siteConfigurationService = {
         });
     },
 
-    async toggleMenu(siteId, moduleKey, menuKey, enabled) {
+    // `menuLabel` is what a OneClick site matches the menu on when it applies
+    // the configuration (its menu keys differ from the baseline's).
+    async toggleMenu(siteId, moduleKey, menuKey, enabled, menuLabel) {
         return apiJson(`/api/site-configurations/${siteId}/menus`, {
             method: 'PATCH',
-            body: JSON.stringify({ module_key: moduleKey, menu_key: menuKey, enabled }),
+            body: JSON.stringify({ module_key: moduleKey, menu_key: menuKey, menu_label: menuLabel, enabled }),
         });
     },
 };

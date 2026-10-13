@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useModulesOverview } from '../composables/useModulesOverview';
 import UiButton from '../components/ui/UiButton.vue';
@@ -9,9 +10,13 @@ import SiteToolbar from '../components/sites/SiteToolbar.vue';
 import SiteGrid from '../components/sites/SiteGrid.vue';
 import SiteManagement from '../components/sites/SiteManagement.vue';
 
-const showManagement = ref(false);
-
 const auth = useAuthStore();
+const route = useRoute();
+
+// "Configure Site" on a site's detail page lands here as /sites?manage=CODE:
+// the management panel opens with that site's edit form ready.
+const manageCode = typeof route.query.manage === 'string' ? route.query.manage : null;
+const showManagement = ref(Boolean(manageCode) && auth.can('site_manage'));
 
 // Reuses the same resolver chain Modules.vue/Monitoring.vue/Dashboard.vue
 // already consume — useModulesOverview()'s own filteredSites is every
@@ -68,7 +73,7 @@ const filteredSites = computed(() => {
             </div>
         </div>
 
-        <SiteManagement v-if="showManagement && auth.can('site_manage')" />
+        <SiteManagement v-if="showManagement && auth.can('site_manage')" :edit-code="manageCode" />
 
         <!-- Summary always reflects all sites, independent of the toolbar filters below. -->
         <SiteStatusSummary :sites="sites" />

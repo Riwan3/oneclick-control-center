@@ -1,5 +1,6 @@
 <script setup>
 import { computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useSiteConfiguration } from '../composables/useSiteConfiguration';
 import { useConfigurationSnapshots } from '../composables/useConfigurationSnapshots';
@@ -38,6 +39,22 @@ const {
     totalModules,
     totalMenus,
 } = useSiteConfiguration();
+
+// "Manage Modules" on a site's detail page lands here as
+// /site-configuration?site=CODE: select that site once, as soon as the
+// configuration has loaded (later reloads must not reset the user's choice).
+const route = useRoute();
+let siteFromQueryApplied = false;
+watch(
+    sites,
+    (list) => {
+        const code = typeof route.query.site === 'string' ? route.query.site.toUpperCase() : null;
+        if (siteFromQueryApplied || !code || !list.length) return;
+        siteFromQueryApplied = true;
+        selectSite(code);
+    },
+    { immediate: true }
+);
 
 // GOVERNANCE SUMMARY — ecosystem-wide aggregates built only from the
 // per-site `summary` (modulesEnabled/modulesTotal) useSiteConfiguration()

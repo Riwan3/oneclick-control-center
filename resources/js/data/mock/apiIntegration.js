@@ -41,17 +41,18 @@ export const API_INTEGRATION_VARIANT = {
 // Record shape once populated:
 // { id, siteCode, apiName, baseUrl, authenticationMethod,
 //   configurationStatus, lastTested }
+// (Superseded: the site connections shown in the UI are derived from the
+// real site catalogue in useApiIntegration.js / useSiteApi.js.)
 export const siteApiConnections = [];
 
 // Control Center -> Site API service catalogue (APIs exposed BY the
-// Control Center). These 4 services are structural definitions — they
-// mirror domains that already exist inside this Control Center — but
-// none is published as an external endpoint yet. This is not telemetry;
-// it is a fixed catalogue, the same kind of structural record
-// kpiCatalogue.js documents for KPIs.
+// Control Center). Fixed catalogue, not telemetry. Site Configuration and
+// Module Configuration are live: they travel in the reply to a site's
+// POST /api/cc/report (disabled modules/menus, target version). User &
+// Access and KPI Catalogue are not published yet.
 export const controlCenterApiServices = [
-    { key: 'site-configuration', name: 'Site Configuration', status: 'pending', version: 'v1', endpoint: 'Not Published' },
-    { key: 'module-configuration', name: 'Module Configuration', status: 'pending', version: 'v1', endpoint: 'Not Published' },
+    { key: 'site-configuration', name: 'Site Configuration', status: 'configured', version: 'v1', endpoint: 'POST /api/cc/report' },
+    { key: 'module-configuration', name: 'Module Configuration', status: 'configured', version: 'v1', endpoint: 'POST /api/cc/report' },
     { key: 'user-access', name: 'User & Access', status: 'pending', version: 'v1', endpoint: 'Not Published' },
     { key: 'kpi-catalogue', name: 'KPI Catalogue', status: 'pending', version: 'v1', endpoint: 'Not Published' },
 ];

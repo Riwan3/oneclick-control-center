@@ -58,6 +58,8 @@ function toSite(row) {
         lastActivity: formatTimestamp(row.last_checked_at),
         lastCheckedAt: row.last_checked_at,
         lastError: row.last_error,
+        // What the site says about applying our configuration (null until it reports).
+        configSync: row.config_sync ?? null,
     };
 }
 

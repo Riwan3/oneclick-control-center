@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { sites, loadSites } from '../../data/siteCatalogue';
 import { siteManagementService } from '../../services/siteManagementService';
 import UiCard from '../ui/UiCard.vue';
@@ -9,6 +9,14 @@ import UiBadge from '../ui/UiBadge.vue';
 // Super-admin site registry: add / edit / delete sites and issue the API
 // token a OneClick site uses to talk to this Control Center. Mounted only
 // for users with the site_manage capability (the API enforces it too).
+
+const props = defineProps({
+    // Site code whose edit form should open as soon as the catalogue has it.
+    editCode: {
+        type: String,
+        default: null,
+    },
+});
 
 const fieldClasses =
     'mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40';
@@ -74,6 +82,20 @@ function startEdit(site) {
     editForm.value = { name: site.name, location: site.location === '—' ? '' : site.location, baseUrl: site.baseUrl };
     editError.value = null;
 }
+
+// Opens the requested site once, when it is first available (the catalogue may still be loading).
+let editCodeApplied = false;
+watch(
+    () => sites.length,
+    () => {
+        if (editCodeApplied || !props.editCode) return;
+        const match = sites.find((site) => site.code === props.editCode.toUpperCase());
+        if (!match) return;
+        editCodeApplied = true;
+        startEdit(match);
+    },
+    { immediate: true }
+);
 
 async function handleEdit() {
     editError.value = null;
