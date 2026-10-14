@@ -22,6 +22,7 @@ import Monitoring from '../pages/Monitoring.vue';
 import Audit from '../pages/Audit.vue';
 import Users from '../pages/Users.vue';
 import Notifications from '../pages/Notifications.vue';
+import Profile from '../pages/Profile.vue';
 import DesignSystemPreview from '../pages/DesignSystemPreview.vue';
 import NavigationPreview from '../pages/NavigationPreview.vue';
 
@@ -167,6 +168,13 @@ const routes = [
         name: 'notifications',
         component: Notifications,
         meta: { title: 'Notifications' },
+    },
+    {
+        // Reached from the topbar user menu; any authenticated user.
+        path: '/profile',
+        name: 'profile',
+        component: Profile,
+        meta: { title: 'My Profile' },
     },
     {
         // Temporary — validates the STEP 3E design system. Not in sidebar nav.

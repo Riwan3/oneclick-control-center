@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PasswordResetRequestController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HealthController;
@@ -29,6 +31,9 @@ Route::get('/login', function () {
 Route::post('/login', [LoginController::class, 'store']);
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth');
 
+// "Lupa Password" — public submission from the login page.
+Route::post('/api/password-requests', [PasswordResetRequestController::class, 'store'])->middleware('throttle:5,1');
+
 // Public Health Check Endpoint
 Route::get('/api/health', HealthController::class);
 
@@ -37,6 +42,12 @@ Route::post('/api/cc/report', [SiteReportController::class, 'store'])->middlewar
 
 Route::middleware('auth')->prefix('api')->group(function () {
     Route::get('/user', [UserController::class, 'show']);
+
+    Route::patch('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
+    Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar']);
+    Route::get('/profile/avatar/{user}', [ProfileController::class, 'avatar']);
 
     // Live status of connected sites, filtered to the caller's effective site access.
     Route::get('/site-connections', [SiteConnectionController::class, 'index']);
@@ -53,6 +64,11 @@ Route::middleware('auth')->prefix('api')->group(function () {
         Route::post('/users', [UserManagementController::class, 'store']);
         Route::patch('/users/{user}', [UserManagementController::class, 'update']);
         Route::delete('/users/{user}', [UserManagementController::class, 'destroy']);
+
+        Route::get('/password-requests', [PasswordResetRequestController::class, 'index']);
+        Route::post('/password-requests/{passwordRequest}/verify', [PasswordResetRequestController::class, 'verify']);
+        Route::post('/password-requests/{passwordRequest}/reject', [PasswordResetRequestController::class, 'reject']);
+        Route::post('/password-requests/{passwordRequest}/reset', [PasswordResetRequestController::class, 'reset']);
 
         // Read-only catalogue listings for the site/module access
         // pickers in the user create/edit forms — see SiteController/

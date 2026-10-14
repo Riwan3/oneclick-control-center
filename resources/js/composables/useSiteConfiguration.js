@@ -15,6 +15,7 @@
 // never combined here.
 import { ref, computed, onMounted } from 'vue';
 import { sites as mockSites } from '../data/siteCatalogue';
+import { useSiteContextStore } from '../stores/siteContext';
 import { baselineModules, baselineMenus } from '../data/mock/baselineRegistry';
 import { siteConfigurationService } from '../services/siteConfigurationService';
 
@@ -26,6 +27,7 @@ function round1(value) {
 }
 
 export function useSiteConfiguration() {
+    const siteContext = useSiteContextStore();
     const rawConfigs = ref([]);
     const loading = ref(false);
     const error = ref(null);
@@ -53,6 +55,7 @@ export function useSiteConfiguration() {
         rawConfigs.value
             .map((raw) => ({ ...raw, identity: mockSites.find((site) => site.code === raw.siteCode) }))
             .filter((entry) => entry.identity)
+            .filter((entry) => siteContext.selected.key === 'all' || siteContext.selected.key === entry.siteCode)
             .sort((a, b) => a.identity.name.localeCompare(b.identity.name))
     );
 

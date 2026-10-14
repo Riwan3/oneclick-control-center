@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { userService } from '../services/userService';
 import { useAuthStore } from '../stores/auth';
 import { useNotificationStore } from '../stores/notification';
 import { useUsers } from '../composables/useUsers';
@@ -47,6 +48,45 @@ const editForm = ref(blankForm());
 
 const actionError = ref(null);
 const deletingId = ref(null);
+
+// "Lupa Password" requests submitted from the login page.
+const showResetRequests = ref(false);
+const resetRequests = ref([]);
+const resetBusyId = ref(null);
+const resetMessage = ref(null);
+const pendingResetCount = computed(() => resetRequests.value.filter((r) => r.status === 'pending' || r.status === 'verified').length);
+
+const RESET_STATUS = {
+    pending: { variant: 'warning', label: 'Menunggu verifikasi' },
+    verified: { variant: 'info', label: 'Terverifikasi' },
+    reset: { variant: 'success', label: 'Sudah direset' },
+    rejected: { variant: 'neutral', label: 'Ditolak' },
+};
+
+async function fetchResetRequests() {
+    const { ok, data } = await userService.fetchPasswordRequests();
+    if (ok) resetRequests.value = data?.data ?? [];
+}
+
+async function handleResetAction(request, action) {
+    if (action === 'reset' && !window.confirm(`Reset password ${request.username} menjadi sama dengan NRP/username-nya?`)) return;
+    if (action === 'reject' && !window.confirm(`Tolak permintaan reset dari ${request.username}?`)) return;
+
+    resetBusyId.value = request.id;
+    resetMessage.value = null;
+    const { ok, data } = await userService.actOnPasswordRequest(request.id, action);
+    if (ok) {
+        if (action === 'reset') resetMessage.value = { type: 'ok', text: `Password ${request.username} direset menjadi NRP/username-nya.` };
+        await fetchResetRequests();
+    } else {
+        resetMessage.value = { type: 'error', text: data?.message ?? 'Aksi gagal.' };
+    }
+    resetBusyId.value = null;
+}
+
+function formatDateTime(iso) {
+    return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
 
 const fieldClasses =
     'mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40';
@@ -171,7 +211,10 @@ async function handleDelete(user) {
     deletingId.value = null;
 }
 
-onMounted(fetchUsers);
+onMounted(() => {
+    fetchUsers();
+    if (auth.can('user_manage')) fetchResetRequests();
+});
 </script>
 
 <template>
@@ -184,10 +227,87 @@ onMounted(fetchUsers);
                 </p>
             </div>
 
-            <UiButton v-if="auth.can('user_manage')" @click="openCreateForm">
-                {{ showCreateForm ? 'Cancel' : 'Add User' }}
-            </UiButton>
+            <div v-if="auth.can('user_manage')" class="flex items-center gap-3">
+                <UiButton variant="secondary" @click="showResetRequests = !showResetRequests">
+                    Lupa Password
+                    <span
+                        v-if="pendingResetCount > 0"
+                        class="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-xs font-semibold text-white"
+                    >{{ pendingResetCount }}</span>
+                </UiButton>
+                <UiButton @click="openCreateForm">
+                    {{ showCreateForm ? 'Cancel' : 'Add User' }}
+                </UiButton>
+            </div>
         </div>
+
+        <UiCard v-if="showResetRequests && auth.can('user_manage')" padding="sm">
+            <div class="mb-3 px-2">
+                <h3 class="text-card-title">Permintaan Lupa Password</h3>
+                <p class="text-caption mt-1">
+                    Verifikasi data pemohon, lalu reset. Reset mengembalikan password menjadi sama dengan NRP / username.
+                </p>
+                <p v-if="resetMessage" class="mt-2 text-sm font-medium" :class="resetMessage.type === 'ok' ? 'text-success' : 'text-danger'">
+                    {{ resetMessage.text }}
+                </p>
+            </div>
+            <div v-if="resetRequests.length === 0" class="py-6 text-center text-body">Belum ada permintaan.</div>
+            <div v-else class="overflow-x-auto">
+                <table class="w-full min-w-[820px] border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-border">
+                            <th class="px-3 py-2 text-left text-label">NRP / Username</th>
+                            <th class="px-3 py-2 text-left text-label">Nama lengkap</th>
+                            <th class="px-3 py-2 text-left text-label">Jabatan</th>
+                            <th class="px-3 py-2 text-left text-label">No. telp</th>
+                            <th class="px-3 py-2 text-left text-label">Diajukan</th>
+                            <th class="px-3 py-2 text-left text-label">Status</th>
+                            <th class="px-3 py-2 text-right text-label">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="r in resetRequests" :key="r.id" class="border-b border-border last:border-0">
+                            <td class="px-3 py-2.5 font-medium text-text-primary">
+                                {{ r.username }}
+                                <p v-if="!r.userFound" class="text-caption text-danger">User tidak ditemukan</p>
+                                <p v-else class="text-caption">{{ r.userName }}</p>
+                            </td>
+                            <td class="px-3 py-2.5 text-text-secondary">{{ r.fullName }}</td>
+                            <td class="px-3 py-2.5 text-text-secondary">{{ r.position }}</td>
+                            <td class="px-3 py-2.5 text-text-secondary">{{ r.phone }}</td>
+                            <td class="px-3 py-2.5 text-text-secondary">{{ formatDateTime(r.createdAt) }}</td>
+                            <td class="px-3 py-2.5">
+                                <UiBadge :variant="RESET_STATUS[r.status].variant">{{ RESET_STATUS[r.status].label }}</UiBadge>
+                                <p v-if="r.handledBy" class="text-caption mt-0.5">oleh {{ r.handledBy }}</p>
+                            </td>
+                            <td class="px-3 py-2.5 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <UiButton
+                                        v-if="r.status === 'pending'"
+                                        size="sm"
+                                        :disabled="resetBusyId === r.id"
+                                        @click="handleResetAction(r, 'verify')"
+                                    >Verifikasi</UiButton>
+                                    <UiButton
+                                        v-if="r.status === 'verified' && r.userFound"
+                                        size="sm"
+                                        :disabled="resetBusyId === r.id"
+                                        @click="handleResetAction(r, 'reset')"
+                                    >Reset Password</UiButton>
+                                    <UiButton
+                                        v-if="r.status === 'pending' || r.status === 'verified'"
+                                        variant="danger"
+                                        size="sm"
+                                        :disabled="resetBusyId === r.id"
+                                        @click="handleResetAction(r, 'reject')"
+                                    >Tolak</UiButton>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </UiCard>
 
         <UiCard v-if="showCreateForm">
             <h3 class="text-card-title mb-4">New User</h3>

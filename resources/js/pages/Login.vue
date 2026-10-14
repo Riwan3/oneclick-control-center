@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import UiCard from '../components/ui/UiCard.vue';
 import UiButton from '../components/ui/UiButton.vue';
+import { authService } from '../services/authService';
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -30,6 +31,37 @@ const showPassword = ref(false);
 const fieldClasses =
     'w-full rounded-xl border border-border bg-surface pl-11 pr-11 py-3.5 text-sm text-text-primary placeholder:text-text-muted/70 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20';
 
+// "Lupa Password": a request is sent to the Super Admin, who verifies
+// the requester in User Management and resets the password.
+const mode = ref('login');
+const forgot = ref({ username: '', full_name: '', position: '', phone: '' });
+const forgotBusy = ref(false);
+const forgotError = ref(null);
+const forgotDone = ref(null);
+
+const plainFieldClasses =
+    'w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-primary placeholder:text-text-muted/70 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20';
+
+function openForgot() {
+    forgotError.value = null;
+    forgotDone.value = null;
+    mode.value = 'forgot';
+}
+
+async function handleForgot() {
+    forgotBusy.value = true;
+    forgotError.value = null;
+    const { ok, data } = await authService.requestPasswordReset(forgot.value);
+    if (ok) {
+        forgotDone.value = data?.message ?? 'Permintaan terkirim.';
+        forgot.value = { username: '', full_name: '', position: '', phone: '' };
+    } else {
+        forgotError.value =
+            Object.values(data?.errors ?? {}).flat()[0] ?? data?.message ?? 'Gagal mengirim permintaan. Coba lagi.';
+    }
+    forgotBusy.value = false;
+}
+
 async function handleSubmit() {
     const success = await auth.login(username.value, password.value);
     if (success) {
@@ -43,19 +75,19 @@ async function handleSubmit() {
     <div class="flex min-h-screen items-center justify-end bg-cover bg-center bg-no-repeat px-4 pr-6 sm:pr-12 md:pr-24 lg:pr-32 xl:pr-40" style="background-image: url('/login-bg.png');">
         <UiCard class="w-full max-w-[420px] shadow-2xl" padding="lg">
             <div class="mb-6 text-center">
-                <img src="../../images/logo-oneclick.png" alt="OneClick Logo" class="mx-auto h-20 w-auto object-contain mb-3" />
-                <h1 class="text-page-title mt-2 font-bold tracking-tight">OneClick Control Center</h1>
-                <p class="text-caption mt-1 text-text-secondary">PPA Group</p>
+                <img src="../../images/logo-oneclick.png" alt="OneClick Logo" class="mx-auto h-20 w-auto object-contain" />
+                <h1 class="text-page-title -mt-1 font-bold leading-tight tracking-tight"><span class="block text-maroon">OneClick</span><span class="block text-xl text-text-primary">Control Center</span></h1>
+                <div class="mt-2 flex items-center gap-3 text-sm font-medium text-text-secondary"><span class="h-px flex-1 bg-border"></span><span>PPA Group</span><span class="h-px flex-1 bg-border"></span></div>
                 
                 <div class="mt-4 border-t border-border/50 pt-4">
-                    <h2 class="text-base font-bold text-text-primary">Selamat Datang Kembali!</h2>
-                    <p class="text-xs text-text-muted mt-1">Silakan masuk untuk melanjutkan</p>
+                    <h2 class="text-base font-bold text-text-primary">{{ mode === 'login' ? 'Selamat Datang Kembali!' : 'Lupa Password' }}</h2>
+                    <p class="text-xs text-text-muted mt-1">{{ mode === 'login' ? 'Silakan masuk untuk melanjutkan' : 'Isi data berikut, Super Admin akan memverifikasi dan mereset password Anda' }}</p>
                 </div>
             </div>
 
             <p v-if="sessionMessage" class="mb-4 text-sm font-medium text-text-secondary">{{ sessionMessage }}</p>
 
-            <form class="space-y-4" @submit.prevent="handleSubmit">
+            <form v-if="mode === 'login'" class="space-y-4" @submit.prevent="handleSubmit">
                 <!-- Username / NRP Input -->
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
@@ -107,7 +139,7 @@ async function handleSubmit() {
                         <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 focus:ring-offset-0" />
                         <span class="text-sm font-medium">Ingat saya</span>
                     </label>
-                    <a href="#" class="text-primary hover:underline font-semibold text-sm">Lupa Password?</a>
+                    <button type="button" class="text-primary hover:underline font-semibold text-sm" @click="openForgot">Lupa Password?</button>
                 </div>
 
                 <p v-if="auth.error" class="text-sm font-medium text-danger">{{ auth.error }}</p>
@@ -117,6 +149,27 @@ async function handleSubmit() {
                     {{ auth.loading ? 'Signing in…' : 'Masuk' }}
                 </button>
             </form>
+
+            <div v-else>
+                <div v-if="forgotDone" class="space-y-4 text-center">
+                    <p class="rounded-xl bg-success-soft px-4 py-3 text-sm font-medium text-success">{{ forgotDone }}</p>
+                    <button type="button" class="text-primary hover:underline font-semibold text-sm" @click="mode = 'login'">Kembali ke halaman masuk</button>
+                </div>
+
+                <form v-else class="space-y-3" @submit.prevent="handleForgot">
+                    <input v-model="forgot.username" type="text" required placeholder="NRP / Username" autocomplete="username" :class="plainFieldClasses" />
+                    <input v-model="forgot.full_name" type="text" required placeholder="Nama lengkap" autocomplete="name" :class="plainFieldClasses" />
+                    <input v-model="forgot.position" type="text" required placeholder="Jabatan" :class="plainFieldClasses" />
+                    <input v-model="forgot.phone" type="tel" required placeholder="Nomor telepon" autocomplete="tel" :class="plainFieldClasses" />
+
+                    <p v-if="forgotError" class="text-sm font-medium text-danger">{{ forgotError }}</p>
+
+                    <button type="submit" :disabled="forgotBusy" class="w-full py-3.5 text-white font-bold rounded-xl transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-maroon/40 text-base disabled:opacity-60" style="background-color: #7b1220;">
+                        {{ forgotBusy ? 'Mengirim…' : 'Kirim Permintaan' }}
+                    </button>
+                    <button type="button" class="block w-full text-center text-primary hover:underline font-semibold text-sm" @click="mode = 'login'">Kembali ke halaman masuk</button>
+                </form>
+            </div>
 
             <div class="mt-6 text-center text-xs text-text-muted border-t border-border/50 pt-4">
                 <p class="text-[10px]">&copy; 2026 PT Putra Perkasa Abadi. All rights reserved.</p>

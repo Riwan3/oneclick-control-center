@@ -35,4 +35,13 @@ export const userService = {
     async fetchModules() {
         return apiJson('/api/modules');
     },
+
+    // "Lupa Password" requests from the login page (super_admin only).
+    async fetchPasswordRequests() {
+        return apiJson('/api/password-requests');
+    },
+
+    async actOnPasswordRequest(id, action) {
+        return apiJson(`/api/password-requests/${id}/${action}`, { method: 'POST' });
+    },
 };

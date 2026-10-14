@@ -29,15 +29,19 @@ export function registerSessionExpiredHandler(handler) {
 }
 
 export async function apiFetch(url, options = {}) {
+    const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-XSRF-TOKEN': getCsrfToken() ?? '',
+        ...(options.headers ?? {}),
+    };
+    // A FormData body needs the browser to set its own multipart boundary.
+    if (options.body instanceof FormData) delete headers['Content-Type'];
+
     const response = await fetch(url, {
         ...options,
         credentials: 'same-origin',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'X-XSRF-TOKEN': getCsrfToken() ?? '',
-            ...(options.headers ?? {}),
-        },
+        headers,
     });
 
     if (response.status === 401) {

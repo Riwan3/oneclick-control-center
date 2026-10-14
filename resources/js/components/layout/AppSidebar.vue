@@ -25,9 +25,9 @@ function isItemActive(item) {
         :class="ui.sidebarCollapsed ? 'w-20' : 'w-64'"
     >
         <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-maroon to-maroon-hover"></div>
-        <div class="flex h-16 items-center gap-3 border-b border-border px-4">
+        <div class="flex h-16 items-center justify-center gap-3 border-b border-border px-4">
             <img :src="logoUrl" alt="OneClick Logo" class="h-10 w-10 shrink-0 object-contain" />
-            <div v-if="!ui.sidebarCollapsed" class="min-w-0 leading-tight">
+            <div v-if="!ui.sidebarCollapsed" class="min-w-0 text-center leading-tight">
                 <p class="truncate text-sm font-semibold text-text-primary">OneClick</p>
                 <p class="truncate text-xs text-text-muted">Control Center</p>
             </div>
@@ -91,7 +91,7 @@ function isItemActive(item) {
                 <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-background text-text-muted">
                     <AppIcon name="user" />
                 </div>
-                <div v-if="!ui.sidebarCollapsed" class="min-w-0 leading-tight">
+                <div v-if="!ui.sidebarCollapsed" class="min-w-0 text-center leading-tight">
                     <p class="truncate text-sm font-medium text-text-secondary">{{ auth.user?.name ?? 'Guest' }}</p>
                     <p class="truncate text-xs text-text-muted">{{ auth.roleDefinition?.label ?? 'No role assigned' }}</p>
                 </div>

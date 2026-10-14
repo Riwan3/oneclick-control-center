@@ -3,9 +3,8 @@ import { defineStore } from 'pinia';
 // GLOBAL SITE CONTEXT — which site the Control Center chrome is
 // currently scoped to, selected from AppTopbar.vue's site selector.
 //
-// PHASE 1 scope: this only drives the topbar's own selected-site
-// display. No page currently reads this store to filter its data —
-// that is deliberately out of scope for this phase.
+// Pages that list sites filter through useEffectiveAccess().canAccessSite(),
+// which narrows to the site selected here.
 //
 // Session-only, in-memory Pinia state (no localStorage) — the same
 // pattern stores/ui.js's sidebarCollapsed already uses; state persists

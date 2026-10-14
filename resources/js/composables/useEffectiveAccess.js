@@ -7,9 +7,11 @@
 // hardcoded usernames/site ids/role names.
 import { computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
+import { useSiteContextStore } from '../stores/siteContext';
 
 export function useEffectiveAccess() {
     const auth = useAuthStore();
+    const siteContext = useSiteContextStore();
 
     const isSuperAdmin = computed(() => auth.role === 'super_admin');
 
@@ -31,9 +33,18 @@ export function useEffectiveAccess() {
     // is (or was, e.g. legacy data) stored as 'all' is still honored
     // correctly as full access, instead of silently resolving to zero
     // access because it isn't super_admin.
-    function canAccessSite(code) {
+    function hasSiteAccess(code) {
         if (!auth.user) return false;
         return siteAccessMode.value === 'all' || allowedSiteCodes.value.includes(code);
+    }
+
+    // hasSiteAccess() narrowed by the topbar's Site Context selector, so
+    // every page that filters through here follows the selected site.
+    // The selector's own option list uses hasSiteAccess() instead.
+    function canAccessSite(code) {
+        if (!hasSiteAccess(code)) return false;
+        const selected = siteContext.selected.key;
+        return selected === 'all' || selected === code;
     }
 
     function canAccessModule(key) {
@@ -47,6 +58,7 @@ export function useEffectiveAccess() {
         allowedSiteCodes,
         moduleAccessMode,
         allowedModuleKeys,
+        hasSiteAccess,
         canAccessSite,
         canAccessModule,
     };

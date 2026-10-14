@@ -36,6 +36,9 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role,
             'status' => $this->status,
+            'avatarUrl' => $this->avatar_path
+                ? "/api/profile/avatar/{$this->id}?v=".substr(md5($this->avatar_path), 0, 8)
+                : null,
             // Password is never included — hidden on the model, and not
             // referenced here either.
 

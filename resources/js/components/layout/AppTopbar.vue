@@ -9,12 +9,13 @@ import { useEffectiveAccess } from '../../composables/useEffectiveAccess';
 import { sites as allSites } from '../../data/siteCatalogue';
 import { notificationIcon, notificationSeverityClass } from '../../config/notificationTypes';
 import AppIcon from './AppIcon.vue';
+import UserAvatar from './UserAvatar.vue';
 
 const ui = useUiStore();
 const auth = useAuthStore();
 const notifications = useNotificationStore();
 const siteContext = useSiteContextStore();
-const { canAccessSite } = useEffectiveAccess();
+const { hasSiteAccess } = useEffectiveAccess();
 const route = useRoute();
 const router = useRouter();
 
@@ -27,7 +28,7 @@ const siteMenuOpen = ref(false);
 // the existing access-scope rule (useEffectiveAccess) — the same
 // source and filter every other page already uses. No new site data,
 // no API call.
-const accessibleSites = computed(() => allSites.filter((site) => canAccessSite(site.code)));
+const accessibleSites = computed(() => allSites.filter((site) => hasSiteAccess(site.code)));
 
 function toggleSiteMenu() {
     menuOpen.value = false;
@@ -221,9 +222,7 @@ onMounted(() => {
                     class="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-background"
                     @click="siteMenuOpen = false; menuOpen = !menuOpen"
                 >
-                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-primary">
-                        <AppIcon name="user" class="h-4 w-4" />
-                    </div>
+                    <UserAvatar :src="auth.user?.avatarUrl" />
                     <span class="text-sm font-medium text-text-secondary">{{ auth.user?.name ?? 'Guest' }}</span>
                     <AppIcon name="chevron-down" class="h-4 w-4 text-text-muted" />
                 </button>
@@ -238,6 +237,13 @@ onMounted(() => {
                         <p class="truncate text-sm font-medium text-text-primary">{{ auth.user?.name }}</p>
                         <p class="truncate text-caption">{{ auth.roleDefinition?.label }}</p>
                     </div>
+                    <router-link
+                        to="/profile"
+                        class="block w-full px-3 py-2 text-left text-sm text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                        @click="menuOpen = false"
+                    >
+                        My Profile
+                    </router-link>
                     <button
                         type="button"
                         class="block w-full px-3 py-2 text-left text-sm text-text-secondary transition-colors hover:bg-background hover:text-danger"
