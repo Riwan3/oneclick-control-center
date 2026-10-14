@@ -7,7 +7,6 @@ import { sites as allSites } from '../data/siteCatalogue';
 import { useEffectiveAccess } from './useEffectiveAccess';
 import {
     controlCenterApiServices,
-    apiConfigurationState,
     API_INTEGRATION_LABEL,
     API_INTEGRATION_VARIANT,
 } from '../data/mock/apiIntegration';
@@ -35,7 +34,6 @@ export function useApiIntegration() {
             }))
     );
     const services = computed(() => controlCenterApiServices);
-    const configuration = computed(() => apiConfigurationState);
 
     const configuredSiteConnections = computed(
         () => siteConnections.value.filter((c) => c.configurationStatus === 'configured').length
@@ -58,7 +56,6 @@ export function useApiIntegration() {
         accessibleSites,
         siteConnections,
         services,
-        configuration,
         summary,
         statusLabel: API_INTEGRATION_LABEL,
         statusVariant: API_INTEGRATION_VARIANT,

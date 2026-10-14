@@ -1,36 +1,86 @@
 <script setup>
-import { ref } from 'vue';
+import { computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
-import { useApiIntegration } from '../composables/useApiIntegration';
+import { useIntegrationSettings } from '../composables/useIntegrationSettings';
 import UiCard from '../components/ui/UiCard.vue';
 import UiBadge from '../components/ui/UiBadge.vue';
 import UiButton from '../components/ui/UiButton.vue';
+import UiKpiCard from '../components/ui/UiKpiCard.vue';
 import DashboardSection from '../components/dashboard/DashboardSection.vue';
 import ApiIntegrationTabs from '../components/api-integration/ApiIntegrationTabs.vue';
 
 const auth = useAuthStore();
-const { configuration, statusLabel, statusVariant } = useApiIntegration();
+const { settings, sites, needsAttention, lastReport, loading, error } = useIntegrationSettings();
 
-const fieldClasses =
-    'w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40';
+// Read-only: these are the rules the Control Center applies, not form fields.
+const cards = computed(() => {
+    const s = settings.value;
+    if (!s) return [];
 
-const environments = ['Sandbox', 'Staging', 'Production'];
-const authMethods = ['None', 'API Key', 'Bearer Token', 'Basic Auth'];
-
-const form = ref({
-    environment: '',
-    baseUrl: '',
-    timeout: '',
-    authenticationMethod: 'None',
-    credential: '',
+    return [
+        {
+            title: 'Control Center endpoint',
+            hint: 'Where a OneClick site sends its report.',
+            rows: [
+                ['Address', s.endpoint.url],
+                ['Report endpoint', `${s.endpoint.method} ${s.endpoint.report_path}`],
+                ['Rate limit', `${s.endpoint.rate_limit_per_minute} reports per minute, per source address`],
+                ['Maximum report size', `${s.endpoint.max_payload_kb} KB`],
+            ],
+        },
+        {
+            title: 'Authentication',
+            hint: 'Issue or replace a site\'s token under Site API.',
+            rows: [
+                ['Method', s.authentication.method],
+                ['Site identified by', `${s.authentication.site_header} header`],
+                ['Token storage', s.authentication.token_storage],
+            ],
+        },
+        {
+            title: 'Timing',
+            hint: 'Set in the server configuration, not from this page.',
+            rows: [
+                ['Pull timeout', `${s.timing.pull_timeout_seconds} seconds`],
+                ['Marked Offline after', `${s.timing.offline_after_minutes} minutes without a report`],
+            ],
+        },
+    ];
 });
 
-// Same UI-only placeholder pattern as Site API — no real persistence,
-// no fabricated success result.
-const actionNotice = ref(null);
-function handleSaveConfiguration() {
-    actionNotice.value = 'This is a UI preview only. API Configuration is not yet persisted to a backend service.';
-}
+const statusTiles = computed(() => {
+    const s = sites.value;
+    if (!s) return [];
+
+    return [
+        { id: 'registered', title: 'Registered Sites', value: s.registered, unit: 'sites', status: 'neutral', statusLabel: 'In the registry' },
+        {
+            id: 'connected',
+            title: 'Connected',
+            value: s.connected,
+            unit: `of ${s.registered}`,
+            status: s.connected > 0 ? 'success' : 'neutral',
+            statusLabel: `${s.push} push · ${s.pull} pull`,
+        },
+        { id: 'online', title: 'Online', value: s.online, unit: 'sites', status: s.online > 0 ? 'success' : 'neutral', statusLabel: 'Reporting normally' },
+        {
+            id: 'attention',
+            title: 'Need Attention',
+            value: needsAttention.value,
+            unit: 'sites',
+            status: needsAttention.value > 0 ? 'warning' : 'neutral',
+            statusLabel: needsAttention.value > 0 ? 'Warning or offline' : 'None',
+        },
+        {
+            id: 'awaiting',
+            title: 'Awaiting First Report',
+            value: s.awaiting_first_report,
+            unit: 'sites',
+            status: 'info',
+            statusLabel: 'Token issued, no report yet',
+        },
+    ];
+});
 </script>
 
 <template>
@@ -39,87 +89,52 @@ function handleSaveConfiguration() {
             <div>
                 <h1 class="text-page-title">API Configuration</h1>
                 <p class="text-body mt-2 max-w-2xl">
-                    Centralized connection, authentication, and integration status configuration.
+                    How sites connect to this Control Center. This page only shows the rules in effect; a site's
+                    own connection is set up under Site API.
                 </p>
             </div>
-            <UiBadge variant="neutral" class="px-3 py-1 text-xs">Configuration Pending</UiBadge>
+            <UiBadge variant="neutral" class="px-3 py-1 text-xs">Read-only</UiBadge>
         </div>
 
         <ApiIntegrationTabs />
 
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <UiCard>
-                <h3 class="text-card-title">Connection Configuration</h3>
-                <form class="mt-4 space-y-4" @submit.prevent>
-                    <div>
-                        <label class="text-label" for="api-config-env">Environment</label>
-                        <select id="api-config-env" v-model="form.environment" class="mt-1.5" :class="fieldClasses">
-                            <option value="" disabled>Select an environment…</option>
-                            <option v-for="env in environments" :key="env" :value="env">{{ env }}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-label" for="api-config-url">Base URL</label>
-                        <input id="api-config-url" v-model="form.baseUrl" type="text" placeholder="https://api.example.com" class="mt-1.5" :class="fieldClasses" />
-                    </div>
-                    <div>
-                        <label class="text-label" for="api-config-timeout">Timeout (seconds)</label>
-                        <input id="api-config-timeout" v-model="form.timeout" type="number" min="0" placeholder="30" class="mt-1.5" :class="fieldClasses" />
-                    </div>
-                </form>
-            </UiCard>
+        <p v-if="loading" class="text-caption">Loading integration settings…</p>
+        <p v-else-if="error" class="text-sm font-medium text-danger">{{ error }}</p>
 
-            <UiCard>
-                <h3 class="text-card-title">Authentication</h3>
-                <form class="mt-4 space-y-4" @submit.prevent>
-                    <div>
-                        <label class="text-label" for="api-config-auth">Authentication Method</label>
-                        <select id="api-config-auth" v-model="form.authenticationMethod" class="mt-1.5" :class="fieldClasses">
-                            <option v-for="method in authMethods" :key="method" :value="method">{{ method }}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-label" for="api-config-credential">Credential / Token</label>
-                        <input id="api-config-credential" v-model="form.credential" type="password" placeholder="Not stored in this preview" class="mt-1.5" :class="fieldClasses" />
-                    </div>
-                </form>
+        <template v-else-if="settings">
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <UiCard v-for="card in cards" :key="card.title">
+                    <h3 class="text-card-title">{{ card.title }}</h3>
+                    <p class="text-caption mt-1">{{ card.hint }}</p>
+                    <dl class="mt-4 space-y-3 text-sm">
+                        <div v-for="[label, value] in card.rows" :key="label">
+                            <dt class="text-caption">{{ label }}</dt>
+                            <dd class="mt-0.5 break-words font-medium text-text-primary">{{ value }}</dd>
+                        </div>
+                    </dl>
+                </UiCard>
+            </div>
 
-                <p v-if="actionNotice" class="mt-4 text-sm font-medium text-text-secondary">{{ actionNotice }}</p>
-                <div class="mt-4">
-                    <UiButton type="button" variant="primary" @click="handleSaveConfiguration">Save Configuration</UiButton>
+            <DashboardSection
+                title="Integration Status"
+                description="The live state of the site connections, taken from what the sites last reported."
+            >
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                    <UiKpiCard
+                        v-for="tile in statusTiles"
+                        :key="tile.id"
+                        :title="tile.title"
+                        :value="tile.value"
+                        :unit="tile.unit"
+                        :status="tile.status"
+                        :status-label="tile.statusLabel"
+                    />
                 </div>
-            </UiCard>
-        </div>
-
-        <DashboardSection
-            title="Integration Status"
-            description="Current state of the global API configuration — no connection has been established yet."
-        >
-            <UiCard>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 text-sm">
-                    <div>
-                        <p class="text-caption">Configuration Status</p>
-                        <UiBadge class="mt-1.5" :variant="statusVariant[configuration.configurationStatus]">
-                            {{ statusLabel[configuration.configurationStatus] }}
-                        </UiBadge>
-                    </div>
-                    <div>
-                        <p class="text-caption">Connection Status</p>
-                        <UiBadge class="mt-1.5" :variant="statusVariant[configuration.connectionStatus]">
-                            {{ statusLabel[configuration.connectionStatus] }}
-                        </UiBadge>
-                    </div>
-                    <div>
-                        <p class="text-caption">Last Test</p>
-                        <p class="mt-1.5 font-medium text-text-secondary">{{ configuration.lastTest ?? 'Not Available' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-caption">Last Synchronization</p>
-                        <p class="mt-1.5 font-medium text-text-secondary">{{ configuration.lastSynchronization ?? 'Not Available' }}</p>
-                    </div>
-                </div>
-            </UiCard>
-        </DashboardSection>
+                <p class="text-caption mt-3">
+                    Last report received: <span class="font-medium text-text-secondary">{{ lastReport ?? 'None yet' }}</span>
+                </p>
+            </DashboardSection>
+        </template>
     </div>
 
     <UiCard v-else>

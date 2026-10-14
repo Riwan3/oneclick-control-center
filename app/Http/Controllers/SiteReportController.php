@@ -19,7 +19,10 @@ use Illuminate\Http\Request;
  */
 class SiteReportController extends Controller
 {
-    private const MAX_PAYLOAD_BYTES = 512 * 1024;
+    public const MAX_PAYLOAD_BYTES = 512 * 1024;
+
+    // Reports a site may send per minute (routes/web.php applies it as the throttle).
+    public const RATE_LIMIT_PER_MINUTE = 30;
 
     public function store(Request $request, SiteConnectionService $connections, SiteConfigPayload $config)
     {

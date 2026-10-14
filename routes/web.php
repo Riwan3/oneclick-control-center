@@ -10,6 +10,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SiteConnectionController;
+use App\Http\Controllers\IntegrationSettingsController;
 use App\Http\Controllers\SiteReportController;
 use App\Http\Controllers\SiteManagementController;
 use App\Http\Controllers\ModuleObservatoryController;
@@ -38,7 +39,8 @@ Route::post('/api/password-requests', [PasswordResetRequestController::class, 's
 Route::get('/api/health', HealthController::class);
 
 // Push mode: OneClick sites report their own status (bearer token + X-Site-Code).
-Route::post('/api/cc/report', [SiteReportController::class, 'store'])->middleware('throttle:30,1');
+Route::post('/api/cc/report', [SiteReportController::class, 'store'])
+    ->middleware('throttle:'.SiteReportController::RATE_LIMIT_PER_MINUTE.',1');
 
 Route::middleware('auth')->prefix('api')->group(function () {
     Route::get('/user', [UserController::class, 'show']);
@@ -75,6 +77,9 @@ Route::middleware('auth')->prefix('api')->group(function () {
         // ModuleController for why these are not new catalogues.
         Route::get('/sites', [SiteController::class, 'index']);
         Route::get('/modules', [ModuleController::class, 'index']);
+
+        // Read-only view of how sites connect (API Integration > API Configuration).
+        Route::get('/integration-settings', IntegrationSettingsController::class);
 
         // Site registry + per-site API token (site_manage, super_admin only).
         Route::post('/sites', [SiteManagementController::class, 'store']);

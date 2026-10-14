@@ -56,18 +56,3 @@ export const controlCenterApiServices = [
     { key: 'user-access', name: 'User & Access', status: 'pending', version: 'v1', endpoint: 'Not Published' },
     { key: 'kpi-catalogue', name: 'KPI Catalogue', status: 'pending', version: 'v1', endpoint: 'Not Published' },
 ];
-
-// Global API configuration record — represents the current
-// not-yet-configured connection/authentication/integration state.
-// Every field is null or an explicit pending/not-tested/not-available
-// state; nothing here is a real credential, date, or connection result.
-export const apiConfigurationState = {
-    environment: null,
-    baseUrl: null,
-    timeout: null,
-    authenticationMethod: null,
-    configurationStatus: 'not_configured',
-    connectionStatus: 'not_tested',
-    lastTest: null,
-    lastSynchronization: null,
-};

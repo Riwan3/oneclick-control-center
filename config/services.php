@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    // Connection to OneClick sites (see SiteConnectionService). Shown read-only
+    // on the API Integration > API Configuration page.
+    'site_connection' => [
+        // Seconds to wait for a site when the Control Center pulls from it.
+        'timeout' => (int) env('SITE_CONNECTION_TIMEOUT', 10),
+        // A site that reported before but stays silent this long is marked Offline.
+        'stale_after_minutes' => (int) env('SITE_CONNECTION_STALE_AFTER_MINUTES', 15),
+    ],
+
 ];
