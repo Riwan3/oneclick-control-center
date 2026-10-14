@@ -26,6 +26,14 @@ const BASELINES = Object.fromEntries(
     ])
 );
 
+// 'one-coal' -> 'One-Coal' (the same label the backend gives an extension).
+function extensionLabel(moduleKey) {
+    return moduleKey
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('-');
+}
+
 function slug(label) {
     return label.toLowerCase().replace(/[^a-z0-9]+/g, '');
 }
@@ -64,10 +72,11 @@ function highestVersion(versions) {
 
 export const moduleObservatoryService = {
     // Returns the record for one observed module (site identity not yet
-    // resolved), or null if it has no baseline and so isn't monitored.
+    // resolved). A baseline module is compared against the baseline. A
+    // module without one is an EXTENSION — monitored when at least one
+    // site reports it, with nothing to compare against — otherwise null.
     async getOverview(moduleKey) {
-        const baseline = BASELINES[moduleKey];
-        if (!baseline) return null;
+        const baseline = BASELINES[moduleKey] ?? null;
 
         const { ok, data } = await apiJson(`/api/module-observatory/${moduleKey}`);
         if (!ok) throw new Error('Unable to load module observatory data.');
@@ -78,13 +87,16 @@ export const moduleObservatoryService = {
             menus: site.menus ? rekeyByLabelPath(site.menus) : null,
         }));
 
+        if (!baseline && sites.length === 0) return null;
+
         return {
             moduleKey,
-            moduleName: baseline.moduleName,
+            moduleName: baseline ? baseline.moduleName : `${extensionLabel(moduleKey)} (extension)`,
+            extension: !baseline,
             baseline: {
                 // The baseline version is the newest version any site reports.
                 version: highestVersion(sites.map((site) => site.version).filter(Boolean)),
-                menus: rekeyByLabelPath(baseline.menus),
+                menus: baseline ? rekeyByLabelPath(baseline.menus) : [],
             },
             lastSyncedAt: data?.data?.lastSyncedAt ?? null,
             sites,

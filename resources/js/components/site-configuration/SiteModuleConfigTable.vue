@@ -7,7 +7,7 @@ defineProps({
     modules: {
         type: Array,
         required: true,
-        // shape: [{ module_key, label, baselineEnabled, siteEnabled }]
+        // shape: [{ module_key, label, baselineEnabled, siteEnabled, extension }]
     },
     selectedModuleKey: {
         type: String,
@@ -33,8 +33,16 @@ defineEmits(['select', 'toggle']);
 // not a guess — it's the exact same rule the backend already enforces,
 // read from data useSiteConfiguration() already exposes (baselineEnabled,
 // siteEnabled), without a second governance resolver.
+//
+// An extension (a module the site reports that is not in the baseline)
+// follows the same rule against its default of "on".
 function hasOverride(mod) {
     return mod.siteEnabled !== mod.baselineEnabled;
+}
+
+function sourceLabel(mod) {
+    if (hasOverride(mod)) return 'Site Override';
+    return mod.extension ? 'Extension' : 'Inherited';
 }
 </script>
 
@@ -60,9 +68,13 @@ function hasOverride(mod) {
                         :class="mod.module_key === selectedModuleKey ? 'bg-primary-soft/40' : ''"
                         @click="$emit('select', mod.module_key)"
                     >
-                        <td class="px-3 py-2 font-medium text-text-primary">{{ mod.label }}</td>
+                        <td class="px-3 py-2 font-medium text-text-primary">
+                            {{ mod.label }}
+                            <UiBadge v-if="mod.extension" variant="info" class="ml-2">Extra</UiBadge>
+                        </td>
                         <td class="px-3 py-2">
-                            <UiStatus :variant="mod.baselineEnabled ? 'success' : 'neutral'" :label="mod.baselineEnabled ? 'Enabled' : 'Disabled'" />
+                            <span v-if="mod.extension" class="text-caption">Not in baseline</span>
+                            <UiStatus v-else :variant="mod.baselineEnabled ? 'success' : 'neutral'" :label="mod.baselineEnabled ? 'Enabled' : 'Disabled'" />
                         </td>
                         <td class="px-3 py-2">
                             <span v-if="!hasOverride(mod)" class="text-caption">None</span>
@@ -72,8 +84,8 @@ function hasOverride(mod) {
                             <UiStatus :variant="mod.siteEnabled ? 'success' : 'neutral'" :label="mod.siteEnabled ? 'Enabled' : 'Disabled'" />
                         </td>
                         <td class="px-3 py-2">
-                            <UiBadge :variant="hasOverride(mod) ? 'info' : 'neutral'">
-                                {{ hasOverride(mod) ? 'Site Override' : 'Inherited' }}
+                            <UiBadge :variant="hasOverride(mod) || mod.extension ? 'info' : 'neutral'">
+                                {{ sourceLabel(mod) }}
                             </UiBadge>
                         </td>
                         <td class="px-3 py-2 text-right" @click.stop>

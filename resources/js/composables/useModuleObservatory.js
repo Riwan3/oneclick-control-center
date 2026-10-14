@@ -109,9 +109,11 @@ export function useModuleObservatory(moduleKey = 'one-power') {
             .filter(({ identity }) => identity && canAccessSite(identity.code))
             .map(({ entry, identity }) => {
                 const hasManifest = Boolean(entry.menus);
-                const diff = hasManifest
-                    ? diffMenus(baseline.value.menus, entry.menus)
-                    : { added: [], removed: [], modified: [] };
+                // An extension has no baseline to compare against, so it never reports a diff.
+                const diff =
+                    hasManifest && !raw.value.extension
+                        ? diffMenus(baseline.value.menus, entry.menus)
+                        : { added: [], removed: [], modified: [] };
                 const syncStatus = resolveSyncStatus({
                     hasManifest,
                     version: entry.version,

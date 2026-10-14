@@ -97,7 +97,7 @@ const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline', 
             title="Module Status"
             description="OneClick module availability for this site."
         >
-            <SiteModuleStatus :modules="site.modules" />
+            <SiteModuleStatus :modules="site.modules" :extensions="site.extensions" :site-code="site.code" />
         </DashboardSection>
 
         <DashboardSection

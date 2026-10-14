@@ -64,16 +64,31 @@ export function useSiteConfiguration() {
         const raw = findRaw(siteId);
         const overrides = new Map((raw?.moduleOverrides ?? []).map((o) => [o.moduleKey, o.enabled]));
 
-        return baselineModules.map((mod) => ({
+        const baseline = baselineModules.map((mod) => ({
             module_key: mod.module_key,
             label: mod.label,
             order: mod.order,
+            extension: false,
             // Baseline default is always "enabled" — every baseline
             // module is enabled by definition in the registry. An
             // explicit site override, if present, wins.
             baselineEnabled: mod.enabled,
             siteEnabled: overrides.has(mod.module_key) ? overrides.get(mod.module_key) : mod.enabled,
         }));
+
+        // Extensions: modules this site reports that are not in the baseline.
+        // They follow the same sparse-override rule (on unless switched off)
+        // but are not part of the baseline, so they never count in its totals.
+        const extensions = (raw?.extensions ?? []).map((ext, index) => ({
+            module_key: ext.key,
+            label: ext.label,
+            order: 1000 + index,
+            extension: true,
+            baselineEnabled: true,
+            siteEnabled: overrides.has(ext.key) ? overrides.get(ext.key) : true,
+        }));
+
+        return [...baseline, ...extensions];
     }
 
     // PARENT/CHILD RULE (documented once, here — see the STEP report
@@ -96,7 +111,17 @@ export function useSiteConfiguration() {
                 .filter((o) => o.moduleKey === moduleKey)
                 .map((o) => [o.menuKey, o.enabled])
         );
-        const moduleMenus = baselineMenus.filter((menu) => menu.module_key === moduleKey);
+        // An extension has no baseline: its menus are the ones the site reported.
+        const extension = (raw?.extensions ?? []).find((ext) => ext.key === moduleKey);
+        const moduleMenus = extension
+            ? extension.menus.map((menu) => ({
+                  menu_key: menu.id,
+                  label: menu.label,
+                  parent_key: menu.parentId,
+                  order: menu.order,
+                  enabled: true,
+              }))
+            : baselineMenus.filter((menu) => menu.module_key === moduleKey);
 
         function leafEnabled(menu) {
             return overrides.has(menu.menu_key) ? overrides.get(menu.menu_key) : menu.enabled;
@@ -118,7 +143,7 @@ export function useSiteConfiguration() {
     }
 
     function siteSummary(siteId) {
-        const modules = effectiveSiteModules(siteId);
+        const modules = effectiveSiteModules(siteId).filter((mod) => !mod.extension);
         const modulesEnabled = modules.filter((mod) => mod.siteEnabled).length;
 
         // Menu completeness counts across ALL baseline menus (TOTAL_MENUS)
@@ -194,7 +219,12 @@ export function useSiteConfiguration() {
         if (!selectedSite.value || !selectedModule.value) return;
         saving.value = true;
         const moduleKey = selectedModule.value.module_key;
-        const menuLabel = baselineMenus.find((menu) => menu.module_key === moduleKey && menu.menu_key === menuKey)?.label;
+        const extensionMenu = (selectedSite.value.extensions ?? [])
+            .find((ext) => ext.key === moduleKey)
+            ?.menus.find((menu) => menu.id === menuKey);
+        const menuLabel =
+            baselineMenus.find((menu) => menu.module_key === moduleKey && menu.menu_key === menuKey)?.label ??
+            extensionMenu?.label;
         const { ok, data } = await siteConfigurationService.toggleMenu(
             selectedSite.value.siteId,
             moduleKey,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Site;
 use App\Services\SiteConnectionService;
+use App\Services\SiteExtensions;
 use Illuminate\Http\Request;
 
 /**
@@ -63,6 +64,13 @@ class SiteConnectionController extends Controller
             'deployed_at' => $site->deployed_at?->toIso8601String(),
             'users' => $site->users_count,
             'modules' => $site->modules ?? [],
+            // Modules this site reports that are not in the baseline (monitored, and can be switched off).
+            'extensions' => array_map(fn (array $extension) => [
+                'key' => $extension['key'],
+                'label' => $extension['label'],
+                'version' => $extension['version'],
+                'menu_count' => count($extension['menus']),
+            ], SiteExtensions::forSite($site)),
             'health_score' => $reachable ? ($site->health['score'] ?? null) : null,
             'active_users_today' => $reachable ? ($site->activity['active_users_today'] ?? null) : null,
             'daily_activity' => $site->activity['daily'] ?? [],

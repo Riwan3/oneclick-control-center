@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\SiteExtensions;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,6 +24,8 @@ class SiteConfigurationResource extends JsonResource
             'siteId' => $this->id,
             'siteCode' => $this->code,
             'siteName' => $this->name,
+            // Modules outside the baseline that this site reported, with their menus.
+            'extensions' => SiteExtensions::forSite($this->resource),
             'moduleOverrides' => $this->moduleConfigs->map(fn ($config) => [
                 'moduleKey' => $config->module_key,
                 'enabled' => $config->enabled,

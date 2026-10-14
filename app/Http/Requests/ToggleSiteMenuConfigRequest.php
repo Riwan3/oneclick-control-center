@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Site;
+use App\Services\SiteExtensions;
 use App\Support\BaselineKeys;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class ToggleSiteMenuConfigRequest extends FormRequest
 {
@@ -19,23 +20,50 @@ class ToggleSiteMenuConfigRequest extends FormRequest
      */
     public function rules(): array
     {
-        // The baseline is locked: only a leaf menu that exists in the
-        // Master Baseline Registry (App\Support\BaselineKeys) can be
-        // switched off. A parent menu's state is derived from its children,
-        // so it is not configurable on its own.
+        // The baseline is locked. Only a LEAF menu can be switched off (a
+        // parent's state is derived from its children), and it must exist
+        // either in the baseline module (App\Support\BaselineKeys) or in an
+        // extension module that this site itself reported
+        // (App\Services\SiteExtensions).
         return [
-            'module_key' => ['required', 'string', Rule::in(BaselineKeys::MODULE_KEYS)],
-            'menu_key' => [
+            'module_key' => [
                 'required',
                 'string',
                 function (string $attribute, mixed $value, \Closure $fail) {
-                    $moduleKey = (string) $this->input('module_key');
-                    $known = collect(BaselineKeys::menusForModule($moduleKey))->contains('menu_key', $value);
+                    if (in_array($value, BaselineKeys::MODULE_KEYS, true)) {
+                        return;
+                    }
 
-                    if (! $known) {
-                        $fail('This menu is not part of the baseline for the module.');
-                    } elseif (! BaselineKeys::isLeaf($moduleKey, $value)) {
-                        $fail('A parent menu is derived from its children and cannot be configured directly.');
+                    $site = $this->route('site');
+                    if (! $site instanceof Site || SiteExtensions::find($site, $value) === null) {
+                        $fail('This module is not part of the baseline and was not reported by the site.');
+                    }
+                },
+            ],
+            'menu_key' => [
+                'required',
+                'string',
+                'max:150',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $moduleKey = (string) $this->input('module_key');
+
+                    if (in_array($moduleKey, BaselineKeys::MODULE_KEYS, true)) {
+                        $known = collect(BaselineKeys::menusForModule($moduleKey))->contains('menu_key', $value);
+
+                        if (! $known) {
+                            $fail('This menu is not part of the baseline for the module.');
+                        } elseif (! BaselineKeys::isLeaf($moduleKey, $value)) {
+                            $fail('A parent menu is derived from its children and cannot be configured directly.');
+                        }
+
+                        return;
+                    }
+
+                    $site = $this->route('site');
+                    $extension = $site instanceof Site ? SiteExtensions::find($site, $moduleKey) : null;
+
+                    if ($extension === null || ! SiteExtensions::hasLeafMenu($extension, $value)) {
+                        $fail('This menu was not reported by the site for the module, or it is a parent menu.');
                     }
                 },
             ],

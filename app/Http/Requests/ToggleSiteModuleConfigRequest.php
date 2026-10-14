@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Site;
+use App\Services\SiteExtensions;
 use App\Support\BaselineKeys;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class ToggleSiteModuleConfigRequest extends FormRequest
 {
@@ -19,10 +20,24 @@ class ToggleSiteModuleConfigRequest extends FormRequest
      */
     public function rules(): array
     {
-        // The baseline is locked: a site can only switch off a module that
-        // exists in the Master Baseline Registry (App\Support\BaselineKeys).
+        // The baseline is locked: a site can switch off a baseline module
+        // (App\Support\BaselineKeys) or an extension — a module outside the
+        // baseline that THIS site itself reported (App\Services\SiteExtensions).
         return [
-            'module_key' => ['required', 'string', Rule::in(BaselineKeys::MODULE_KEYS)],
+            'module_key' => [
+                'required',
+                'string',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (in_array($value, BaselineKeys::MODULE_KEYS, true)) {
+                        return;
+                    }
+
+                    $site = $this->route('site');
+                    if (! $site instanceof Site || SiteExtensions::find($site, $value) === null) {
+                        $fail('This module is not part of the baseline and was not reported by the site.');
+                    }
+                },
+            ],
             'enabled' => ['required', 'boolean'],
         ];
     }

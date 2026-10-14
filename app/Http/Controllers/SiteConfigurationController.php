@@ -30,9 +30,11 @@ use App\Services\AuditLogger;
  * LOCKED BASELINE: the baseline itself is read-only — there is no endpoint
  * that edits it. The requests (ToggleSite*ConfigRequest) only accept a
  * module/menu that exists in the baseline (App\Support\BaselineKeys, the
- * backend mirror of the frontend registry), and only LEAF menus: a parent
- * menu's effective state is derived from its children, so it is never
- * stored. Anything else is rejected with 422 before reaching this class.
+ * backend mirror of the frontend registry) — or in an EXTENSION, a module
+ * outside the baseline that this very site reported
+ * (App\Services\SiteExtensions) — and only LEAF menus: a parent menu's
+ * effective state is derived from its children, so it is never stored.
+ * Anything else is rejected with 422 before reaching this class.
  */
 class SiteConfigurationController extends Controller
 {
