@@ -144,18 +144,10 @@ export const navigationItems = [
         sites: 'all',
         order: 30,
     },
-    {
-        id: 'change-log',
-        label: 'Change Log',
-        route: '/changelog',
-        icon: 'history',
-        section: 'Governance',
-        module: null,
-        enabled: true,
-        capability: 'change_log_view',
-        sites: 'all',
-        order: 31,
-    },
+    // 'Change Log' (/changelog) is deliberately not in the menu: Releases already
+    // keeps the version history and its changelog entries. The page and route
+    // still exist — add an item here (id 'change-log', route '/changelog',
+    // capability 'change_log_view') to bring it back.
     {
         // STEP 3R-2 — Release Version + Changelog Foundation. This was
         // an inert placeholder (route: null, enabled: false) reserved
