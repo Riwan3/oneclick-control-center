@@ -8,7 +8,7 @@ const auth = useAuthStore();
 </script>
 
 <template>
-    <div v-if="!auth.initialized" class="flex min-h-screen items-center justify-center bg-background">
+    <div v-if="!auth.initialized" class="flex min-h-dvh items-center justify-center bg-background">
         <p class="text-body">Loading…</p>
     </div>
     <!-- Public routes (Login) render full-screen, without the app shell. -->

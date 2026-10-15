@@ -20,14 +20,23 @@ function isItemActive(item) {
 </script>
 
 <template>
+    <div
+        v-if="ui.mobileNavOpen"
+        class="fixed inset-0 z-30 bg-text-primary/40 backdrop-blur-sm lg:hidden"
+        @click="ui.closeMobileNav()"
+    ></div>
+
     <aside
-        class="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border bg-white shadow-card transition-[width] duration-200"
-        :class="ui.sidebarCollapsed ? 'w-20' : 'w-64'"
+        class="fixed inset-y-0 left-0 z-40 flex w-64 max-w-[85vw] flex-col border-r border-border bg-white pb-[env(safe-area-inset-bottom)] shadow-card transition-[width,transform] duration-200 lg:z-30 lg:max-w-none lg:translate-x-0"
+        :class="[
+            ui.railCollapsed ? 'lg:w-20' : 'lg:w-64',
+            ui.mobileNavOpen ? 'translate-x-0 shadow-elevated' : '-translate-x-full',
+        ]"
     >
         <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-maroon to-maroon-hover"></div>
         <div class="flex h-16 items-center justify-center gap-3 border-b border-border px-4">
             <img :src="logoUrl" alt="OneClick Logo" class="h-10 w-10 shrink-0 object-contain" />
-            <div v-if="!ui.sidebarCollapsed" class="min-w-0 text-center leading-tight">
+            <div v-if="!ui.railCollapsed" class="min-w-0 text-center leading-tight">
                 <p class="truncate text-sm font-semibold text-text-primary">OneClick</p>
                 <p class="truncate text-xs text-text-muted">Control Center</p>
             </div>
@@ -35,7 +44,7 @@ function isItemActive(item) {
 
         <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
             <template v-for="group in groups" :key="group.section ?? 'top'">
-                <p v-if="group.section && !ui.sidebarCollapsed" class="text-label px-3 pb-1 pt-4">
+                <p v-if="group.section && !ui.railCollapsed" class="text-label px-3 pb-1 pt-4">
                     {{ group.section }}
                 </p>
                 <div v-else-if="group.section" class="mx-3 my-2 border-t border-border/70"></div>
@@ -44,10 +53,10 @@ function isItemActive(item) {
                     <router-link
                         v-if="item.available"
                         :to="item.route"
-                        class="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                        class="group relative flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-text-secondary lg:py-2.5 transition-colors hover:bg-background hover:text-text-primary"
                         :class="[
                             isItemActive(item) ? 'bg-primary-soft text-primary hover:bg-primary-soft hover:text-primary' : '',
-                            ui.sidebarCollapsed ? 'justify-center' : '',
+                            ui.railCollapsed ? 'justify-center' : '',
                         ]"
                     >
                         <span
@@ -55,27 +64,27 @@ function isItemActive(item) {
                             class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-maroon"
                         ></span>
 
-                        <UiTooltip v-if="ui.sidebarCollapsed" :content="item.label" position="right">
+                        <UiTooltip v-if="ui.railCollapsed" :content="item.label" position="right">
                             <AppIcon :name="item.icon" class="shrink-0" />
                         </UiTooltip>
                         <AppIcon v-else :name="item.icon" class="shrink-0" />
 
-                        <span v-if="!ui.sidebarCollapsed" class="truncate">{{ item.label }}</span>
+                        <span v-if="!ui.railCollapsed" class="truncate">{{ item.label }}</span>
                     </router-link>
 
                     <div
                         v-else
                         class="relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-muted"
-                        :class="ui.sidebarCollapsed ? 'justify-center' : ''"
+                        :class="ui.railCollapsed ? 'justify-center' : ''"
                     >
-                        <UiTooltip v-if="ui.sidebarCollapsed" :content="`${item.label} · Soon`" position="right">
+                        <UiTooltip v-if="ui.railCollapsed" :content="`${item.label} · Soon`" position="right">
                             <AppIcon :name="item.icon" class="shrink-0 opacity-50" />
                         </UiTooltip>
                         <AppIcon v-else :name="item.icon" class="shrink-0 opacity-50" />
 
-                        <span v-if="!ui.sidebarCollapsed" class="min-w-0 flex-1 truncate">{{ item.label }}</span>
+                        <span v-if="!ui.railCollapsed" class="min-w-0 flex-1 truncate">{{ item.label }}</span>
 
-                        <UiBadge v-if="!ui.sidebarCollapsed" variant="neutral" class="shrink-0">
+                        <UiBadge v-if="!ui.railCollapsed" variant="neutral" class="shrink-0">
                             Soon
                         </UiBadge>
                     </div>
@@ -86,12 +95,12 @@ function isItemActive(item) {
         <div class="border-t border-border p-3">
             <div
                 class="flex items-center gap-3 rounded-lg px-2 py-2"
-                :class="ui.sidebarCollapsed ? 'justify-center' : ''"
+                :class="ui.railCollapsed ? 'justify-center' : ''"
             >
                 <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-background text-text-muted">
                     <AppIcon name="user" />
                 </div>
-                <div v-if="!ui.sidebarCollapsed" class="min-w-0 text-center leading-tight">
+                <div v-if="!ui.railCollapsed" class="min-w-0 text-center leading-tight">
                     <p class="truncate text-sm font-medium text-text-secondary">{{ auth.user?.name ?? 'Guest' }}</p>
                     <p class="truncate text-xs text-text-muted">{{ auth.roleDefinition?.label ?? 'No role assigned' }}</p>
                 </div>

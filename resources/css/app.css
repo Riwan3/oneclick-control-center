@@ -105,6 +105,27 @@
     }
 }
 
+/*
+ * Touch devices: inputs under 16px make iOS Safari zoom the page on focus,
+ * and the tap-highlight flash looks off on a styled UI.
+ */
+@media (pointer: coarse) {
+    input:not([type='checkbox']):not([type='radio']),
+    select,
+    textarea {
+        font-size: 16px;
+    }
+    button,
+    a,
+    [role='button'] {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 0.15s ease;

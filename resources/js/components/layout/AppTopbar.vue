@@ -74,29 +74,30 @@ onMounted(() => {
 </script>
 
 <template>
-    <header class="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-border bg-white px-6 shadow-card">
+    <header class="sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-border bg-white px-3 shadow-card sm:gap-4 sm:px-6">
         <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-maroon to-maroon-hover"></div>
-        <div class="flex items-center gap-4">
+        <div class="flex min-w-0 items-center gap-2 sm:gap-4">
             <button
                 type="button"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-background hover:text-text-primary lg:h-9 lg:w-9"
+                aria-label="Toggle navigation"
                 @click="ui.toggleSidebar()"
             >
-                <AppIcon :name="ui.sidebarCollapsed ? 'menu' : 'chevron-left'" />
+                <AppIcon :name="ui.railCollapsed || !ui.isDesktop ? 'menu' : 'chevron-left'" />
             </button>
 
-            <p class="text-section-title">{{ pageTitle }}</p>
+            <p class="text-section-title truncate">{{ pageTitle }}</p>
         </div>
 
-        <div class="flex items-center gap-3">
-            <div class="relative">
+        <div class="flex shrink-0 items-center gap-1 sm:gap-3">
+            <div class="sm:relative">
                 <button
                     type="button"
-                    class="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-background"
+                    class="flex h-11 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm lg:h-auto lg:py-2 font-medium text-text-secondary transition-colors hover:bg-background"
                     @click="toggleSiteMenu"
                 >
                     <span class="h-2 w-2 rounded-full bg-primary"></span>
-                    {{ siteContext.selected.name }}
+                    <span class="hidden max-w-[10rem] truncate md:inline">{{ siteContext.selected.name }}</span>
                     <AppIcon name="chevron-down" class="h-4 w-4 text-text-muted" />
                 </button>
 
@@ -104,14 +105,14 @@ onMounted(() => {
 
                 <div
                     v-if="siteMenuOpen"
-                    class="absolute left-0 top-full z-30 mt-2 w-64 rounded-lg border border-border bg-surface shadow-elevated"
+                    class="fixed inset-x-3 top-[4.25rem] z-30 rounded-lg sm:absolute sm:inset-x-auto sm:left-0 sm:top-full sm:mt-2 sm:w-64 rounded-lg border border-border bg-surface shadow-elevated"
                 >
                     <div class="border-b border-border px-4 py-3">
                         <p class="text-sm font-semibold text-text-primary">Site Context</p>
                         <p class="text-caption">Scope the Control Center to one site</p>
                     </div>
 
-                    <div class="max-h-96 overflow-y-auto py-1">
+                    <div class="max-h-[60vh] overflow-y-auto py-1">
                         <button
                             type="button"
                             class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors hover:bg-background"
@@ -137,10 +138,10 @@ onMounted(() => {
                 </div>
             </div>
 
-            <div class="relative">
+            <div class="sm:relative">
                 <button
                     type="button"
-                    class="relative flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                    class="relative flex h-11 w-11 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
                     @click="toggleNotifications"
                 >
                     <AppIcon name="bell" />
@@ -156,7 +157,7 @@ onMounted(() => {
 
                 <div
                     v-if="notifOpen"
-                    class="absolute right-0 top-full z-30 mt-2 w-96 rounded-lg border border-border bg-surface shadow-elevated"
+                    class="fixed inset-x-3 top-[4.25rem] z-30 rounded-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 border border-border bg-surface shadow-elevated"
                 >
                     <div class="flex items-center justify-between border-b border-border px-4 py-3">
                         <div>
@@ -173,7 +174,7 @@ onMounted(() => {
                         </button>
                     </div>
 
-                    <div class="max-h-96 overflow-y-auto">
+                    <div class="max-h-[60vh] overflow-y-auto">
                         <div v-if="notifications.loading" class="px-4 py-6 text-center text-body">Loading…</div>
                         <div
                             v-else-if="notifications.notifications.length === 0"
@@ -219,12 +220,12 @@ onMounted(() => {
             <div class="relative">
                 <button
                     type="button"
-                    class="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-background"
+                    class="flex h-11 items-center gap-2 rounded-lg px-1 sm:px-2 lg:h-auto lg:py-1.5 transition-colors hover:bg-background"
                     @click="siteMenuOpen = false; menuOpen = !menuOpen"
                 >
                     <UserAvatar :src="auth.user?.avatarUrl" />
-                    <span class="text-sm font-medium text-text-secondary">{{ auth.user?.name ?? 'Guest' }}</span>
-                    <AppIcon name="chevron-down" class="h-4 w-4 text-text-muted" />
+                    <span class="hidden text-sm font-medium text-text-secondary md:inline">{{ auth.user?.name ?? 'Guest' }}</span>
+                    <AppIcon name="chevron-down" class="hidden h-4 w-4 text-text-muted sm:block" />
                 </button>
 
                 <div v-if="menuOpen" class="fixed inset-0 z-20" @click="menuOpen = false"></div>
@@ -239,14 +240,14 @@ onMounted(() => {
                     </div>
                     <router-link
                         to="/profile"
-                        class="block w-full px-3 py-2 text-left text-sm text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                        class="block w-full px-3 py-3 text-left text-sm text-text-secondary transition-colors hover:bg-background hover:text-text-primary sm:py-2"
                         @click="menuOpen = false"
                     >
                         My Profile
                     </router-link>
                     <button
                         type="button"
-                        class="block w-full px-3 py-2 text-left text-sm text-text-secondary transition-colors hover:bg-background hover:text-danger"
+                        class="block w-full px-3 py-3 text-left text-sm text-text-secondary transition-colors hover:bg-background hover:text-danger sm:py-2"
                         @click="handleLogout"
                     >
                         Sign Out
