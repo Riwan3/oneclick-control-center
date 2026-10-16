@@ -21,9 +21,10 @@ defineProps({
                     OneClick sites.
                 </p>
                 <p class="text-caption mt-2 max-w-2xl">
-                    Locked: this is the starting point of OneClick on every site, taken from the OneClick SKS
-                    site. It cannot be edited here — a site can only switch off baseline modules and menus
-                    in Site Configuration.
+                    The core modules are locked: they are the starting point of OneClick on every site, taken
+                    from the OneClick SKS site. A Super Admin can register an extra module a site reports into
+                    the baseline (or unregister it again); a site can switch off baseline modules and menus in
+                    Site Configuration.
                 </p>
             </div>
 

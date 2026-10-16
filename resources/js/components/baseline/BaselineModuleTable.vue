@@ -2,6 +2,7 @@
 import UiCard from '../ui/UiCard.vue';
 import UiStatus from '../ui/UiStatus.vue';
 import UiBadge from '../ui/UiBadge.vue';
+import UiButton from '../ui/UiButton.vue';
 
 defineProps({
     modules: {
@@ -12,9 +13,18 @@ defineProps({
         type: String,
         default: null,
     },
+    // Super Admin only: shows the Unregister action on registered modules.
+    canManage: {
+        type: Boolean,
+        default: false,
+    },
+    busy: {
+        type: Boolean,
+        default: false,
+    },
 });
 
-defineEmits(['select']);
+defineEmits(['select', 'unregister']);
 
 // Two distinct axes — NEVER folded into a single "status": a module's
 // business baseline can be fully verified straight from OneClick.docx
@@ -50,11 +60,13 @@ const MAPPING_LABEL = {
                     <tr class="border-b border-border text-caption">
                         <th class="px-3 py-2">Module</th>
                         <th class="px-3 py-2">Key</th>
+                        <th class="px-3 py-2">Source</th>
                         <th class="px-3 py-2">Sidebar Count</th>
                         <th class="px-3 py-2">Business Baseline</th>
                         <th class="px-3 py-2">Technical Mapping</th>
                         <th class="px-3 py-2">Enabled</th>
                         <th class="px-3 py-2">Order</th>
+                        <th v-if="canManage" class="px-3 py-2 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,6 +79,10 @@ const MAPPING_LABEL = {
                     >
                         <td class="px-3 py-2 font-medium text-text-primary">{{ mod.label }}</td>
                         <td class="px-3 py-2 text-text-secondary">{{ mod.module_key }}</td>
+                        <td class="px-3 py-2">
+                            <UiBadge v-if="mod.registered" variant="info">Registered</UiBadge>
+                            <UiBadge v-else variant="neutral">Core</UiBadge>
+                        </td>
                         <td class="px-3 py-2 text-text-secondary">{{ mod.sidebarCount }}</td>
                         <td class="px-3 py-2">
                             <UiStatus :variant="BASELINE_VARIANT[mod.businessBaseline]" :label="BASELINE_LABEL[mod.businessBaseline]" />
@@ -76,9 +92,15 @@ const MAPPING_LABEL = {
                         </td>
                         <td class="px-3 py-2 text-text-secondary">{{ mod.enabled ? 'Active' : 'Inactive' }}</td>
                         <td class="px-3 py-2 text-text-secondary">{{ mod.order }}</td>
+                        <td v-if="canManage" class="px-3 py-2 text-right" @click.stop>
+                            <UiButton v-if="mod.registered" variant="secondary" size="sm" :disabled="busy" @click="$emit('unregister', mod)">
+                                Unregister
+                            </UiButton>
+                            <span v-else class="text-caption">Locked</span>
+                        </td>
                     </tr>
                     <tr v-if="!modules.length">
-                        <td colspan="7" class="px-3 py-6 text-center text-caption">No modules in the registry.</td>
+                        <td :colspan="canManage ? 9 : 8" class="px-3 py-6 text-center text-caption">No modules in the registry.</td>
                     </tr>
                 </tbody>
             </table>

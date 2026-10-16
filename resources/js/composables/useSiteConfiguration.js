@@ -16,11 +16,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { sites as mockSites } from '../data/siteCatalogue';
 import { useSiteContextStore } from '../stores/siteContext';
-import { baselineModules, baselineMenus } from '../data/mock/baselineRegistry';
+import { allBaselineModules, allBaselineMenus, loadRegisteredBaseline } from '../data/baselineRegistered';
 import { siteConfigurationService } from '../services/siteConfigurationService';
-
-const TOTAL_MODULES = baselineModules.length;
-const TOTAL_MENUS = baselineMenus.length;
 
 function round1(value) {
     return Math.round(value * 10) / 10;
@@ -34,10 +31,14 @@ export function useSiteConfiguration() {
     const saving = ref(false);
     const selectedSiteCode = ref(null);
     const selectedModuleKey = ref(null);
+    const totalModules = computed(() => allBaselineModules().length);
+    const totalMenus = computed(() => allBaselineMenus().length);
 
     async function load() {
         loading.value = true;
         error.value = null;
+        // The baseline includes the modules registered from the Control Center.
+        await loadRegisteredBaseline();
         const { ok, data } = await siteConfigurationService.fetchAll();
         if (ok) {
             rawConfigs.value = data?.data ?? [];
@@ -67,7 +68,7 @@ export function useSiteConfiguration() {
         const raw = findRaw(siteId);
         const overrides = new Map((raw?.moduleOverrides ?? []).map((o) => [o.moduleKey, o.enabled]));
 
-        const baseline = baselineModules.map((mod) => ({
+        const baseline = allBaselineModules().map((mod) => ({
             module_key: mod.module_key,
             label: mod.label,
             order: mod.order,
@@ -124,7 +125,7 @@ export function useSiteConfiguration() {
                   order: menu.order,
                   enabled: true,
               }))
-            : baselineMenus.filter((menu) => menu.module_key === moduleKey);
+            : allBaselineMenus().filter((menu) => menu.module_key === moduleKey);
 
         function leafEnabled(menu) {
             return overrides.has(menu.menu_key) ? overrides.get(menu.menu_key) : menu.enabled;
@@ -155,16 +156,16 @@ export function useSiteConfiguration() {
         // dimensions (see the STEP report), so this denominator stays
         // fixed for every site.
         let menusEnabled = 0;
-        for (const mod of baselineModules) {
+        for (const mod of allBaselineModules()) {
             menusEnabled += effectiveSiteMenus(siteId, mod.module_key).filter((menu) => menu.effectiveEnabled).length;
         }
 
         return {
             modulesEnabled,
-            modulesTotal: TOTAL_MODULES,
+            modulesTotal: totalModules.value,
             menusEnabled,
-            menusTotal: TOTAL_MENUS,
-            completeness: TOTAL_MENUS ? round1((menusEnabled / TOTAL_MENUS) * 100) : 0,
+            menusTotal: totalMenus.value,
+            completeness: totalMenus.value ? round1((menusEnabled / totalMenus.value) * 100) : 0,
         };
     }
 
@@ -226,7 +227,7 @@ export function useSiteConfiguration() {
             .find((ext) => ext.key === moduleKey)
             ?.menus.find((menu) => menu.id === menuKey);
         const menuLabel =
-            baselineMenus.find((menu) => menu.module_key === moduleKey && menu.menu_key === menuKey)?.label ??
+            allBaselineMenus().find((menu) => menu.module_key === moduleKey && menu.menu_key === menuKey)?.label ??
             extensionMenu?.label;
         const { ok, data } = await siteConfigurationService.toggleMenu(
             selectedSite.value.siteId,
@@ -258,7 +259,7 @@ export function useSiteConfiguration() {
         selectModule,
         toggleModule,
         toggleMenu,
-        totalModules: TOTAL_MODULES,
-        totalMenus: TOTAL_MENUS,
+        totalModules,
+        totalMenus,
     };
 }

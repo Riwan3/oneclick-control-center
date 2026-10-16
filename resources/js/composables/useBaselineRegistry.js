@@ -9,12 +9,16 @@
 // (auth.can('change_log_view') in Baseline.vue).
 import { ref, computed, onMounted } from 'vue';
 import { baselineRegistryService } from '../services/baselineRegistryService';
+import { registeredBaseline } from '../data/baselineRegistered';
 
 export function useBaselineRegistry() {
     const raw = ref(null);
     const loading = ref(false);
     const error = ref(null);
     const selectedModuleKey = ref(null);
+    // Register / unregister in flight, and the last failure message.
+    const acting = ref(false);
+    const actionError = ref(null);
 
     async function load() {
         loading.value = true;
@@ -79,6 +83,31 @@ export function useBaselineRegistry() {
             }));
     });
 
+    // Extensions reported by sites that are not in the baseline yet.
+    const candidates = computed(() => registeredBaseline.candidates);
+
+    async function runAction(action) {
+        acting.value = true;
+        actionError.value = null;
+        const { ok, data } = await action();
+        if (ok) {
+            await load();
+        } else {
+            actionError.value =
+                Object.values(data?.errors ?? {}).flat()[0] ?? data?.message ?? 'The baseline could not be updated.';
+        }
+        acting.value = false;
+        return ok;
+    }
+
+    function registerModule(moduleKey, options) {
+        return runAction(() => baselineRegistryService.registerModule(moduleKey, options));
+    }
+
+    function unregisterModule(moduleKey) {
+        return runAction(() => baselineRegistryService.unregisterModule(moduleKey));
+    }
+
     function selectModule(moduleKey) {
         if (modules.value.some((mod) => mod.module_key === moduleKey)) {
             selectedModuleKey.value = moduleKey;
@@ -96,6 +125,11 @@ export function useBaselineRegistry() {
         selectedModule,
         selectedModuleMenus,
         selectModule,
+        candidates,
+        acting,
+        actionError,
+        registerModule,
+        unregisterModule,
         legacyModuleMapping: computed(() => raw.value?.legacyModuleMapping ?? []),
     };
 }

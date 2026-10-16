@@ -2,6 +2,9 @@
 
 namespace App\Support;
 
+use App\Models\BaselineRegisteredModule;
+use Illuminate\Database\QueryException;
+
 /**
  * STRUCTURAL SKELETON of the Master Baseline Registry — module keys and
  * menu keys/hierarchy ONLY. No labels, no descriptions, no
@@ -23,6 +26,11 @@ namespace App\Support;
  * project has repeatedly guarded against — it carries none of the
  * baseline's actual content (labels, descriptions). It is the smallest
  * possible mirror that still makes snapshot computation possible.
+ *
+ * REGISTERED MODULES: besides the locked SKS modules below (MODULE_KEYS / MENUS),
+ * a module can be registered into the baseline from the Control Center
+ * (BaselineRegisteredModule). moduleKeys() / menus() return both; the
+ * constants are only the locked core. Always use the methods.
  *
  * *** KEEP IN SYNC ***
  * The single source of truth for the baseline's real content remains
@@ -179,15 +187,72 @@ class BaselineKeys
         ['menu_key' => 'share', 'module_key' => 'one-roster', 'parent_key' => null],
     ];
 
+    /** @var array<string, array<int, array{menu_key: string, module_key: string, parent_key: ?string}>>|null  registered module_key => menus */
+    private static ?array $registered = null;
+
+    /** Forget the cached registrations (call after registering/unregistering, and between tests). */
+    public static function flush(): void
+    {
+        self::$registered = null;
+    }
+
+    /** @return array<string, array<int, array{menu_key: string, module_key: string, parent_key: ?string}>> */
+    private static function registered(): array
+    {
+        if (self::$registered !== null) {
+            return self::$registered;
+        }
+
+        try {
+            $rows = BaselineRegisteredModule::query()->orderBy('id')->get(['module_key', 'menus']);
+        } catch (QueryException) {
+            // Table not migrated yet (a deploy in progress): only the locked core exists.
+            return self::$registered = [];
+        }
+
+        $registered = [];
+        foreach ($rows as $row) {
+            $registered[$row->module_key] = array_map(fn (array $menu) => [
+                'menu_key' => (string) $menu['menu_key'],
+                'module_key' => $row->module_key,
+                'parent_key' => isset($menu['parent_key']) ? (string) $menu['parent_key'] : null,
+            ], (array) $row->menus);
+        }
+
+        return self::$registered = $registered;
+    }
+
+    public static function isCore(string $moduleKey): bool
+    {
+        return in_array($moduleKey, self::MODULE_KEYS, true);
+    }
+
+    public static function isRegistered(string $moduleKey): bool
+    {
+        return array_key_exists($moduleKey, self::registered());
+    }
+
+    /** Every baseline module key: the locked core plus the registered ones. @return string[] */
+    public static function moduleKeys(): array
+    {
+        return [...self::MODULE_KEYS, ...array_keys(self::registered())];
+    }
+
+    /** Every baseline menu: the locked core plus the registered modules'. */
+    public static function menus(): array
+    {
+        return [...self::MENUS, ...array_merge([], ...array_values(self::registered()))];
+    }
+
     public static function menusForModule(string $moduleKey): array
     {
-        return array_values(array_filter(self::MENUS, fn (array $menu) => $menu['module_key'] === $moduleKey));
+        return array_values(array_filter(self::menus(), fn (array $menu) => $menu['module_key'] === $moduleKey));
     }
 
     public static function childrenOf(string $moduleKey, string $menuKey): array
     {
         return array_values(array_filter(
-            self::MENUS,
+            self::menus(),
             fn (array $menu) => $menu['module_key'] === $moduleKey && $menu['parent_key'] === $menuKey
         ));
     }

@@ -8,16 +8,16 @@
 // rules), so this can't misrepresent what was actually enabled/disabled
 // at snapshot time — only what it's called today.
 import { ref, computed } from 'vue';
-import { baselineModules, baselineMenus } from '../data/mock/baselineRegistry';
+import { allBaselineModules, allBaselineMenus, loadRegisteredBaseline } from '../data/baselineRegistered';
 import { configurationSnapshotService } from '../services/configurationSnapshotService';
 
 function labelForModule(moduleKey) {
-    return baselineModules.find((mod) => mod.module_key === moduleKey)?.label ?? moduleKey;
+    return allBaselineModules().find((mod) => mod.module_key === moduleKey)?.label ?? moduleKey;
 }
 
 // Menu keys are unique per module only (several modules have a 'dashboard').
 function labelForMenu(moduleKey, menuKey) {
-    return baselineMenus.find((menu) => menu.module_key === moduleKey && menu.menu_key === menuKey)?.label ?? menuKey;
+    return allBaselineMenus().find((menu) => menu.module_key === moduleKey && menu.menu_key === menuKey)?.label ?? menuKey;
 }
 
 export function useConfigurationSnapshots() {
@@ -35,6 +35,8 @@ export function useConfigurationSnapshots() {
     async function loadSnapshots(siteId) {
         loadingList.value = true;
         listError.value = null;
+        // Labels of a module registered into the baseline come from the backend.
+        await loadRegisteredBaseline();
         const { ok, data } = await configurationSnapshotService.fetchAll(siteId);
         if (ok) {
             snapshots.value = data?.data ?? [];
@@ -88,7 +90,7 @@ export function useConfigurationSnapshots() {
 
     function selectedSnapshotMenusForModule(moduleKey) {
         if (!selectedSnapshot.value) return [];
-        const baselineForModule = baselineMenus.filter((menu) => menu.module_key === moduleKey);
+        const baselineForModule = allBaselineMenus().filter((menu) => menu.module_key === moduleKey);
         const orderByKey = new Map(baselineForModule.map((menu) => [menu.menu_key, menu.order]));
         const parentByKey = new Map(baselineForModule.map((menu) => [menu.menu_key, menu.parent_key]));
 

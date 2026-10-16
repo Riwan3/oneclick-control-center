@@ -5,26 +5,28 @@
 // (data/mock/baselineRegistry.js, taken from the SKS site) — it is the thing
 // the sites are compared to, for every baseline module.
 import { apiJson } from '../lib/http';
-import { baselineModules, baselineMenus } from '../data/mock/baselineRegistry';
+import { allBaselineModules, allBaselineMenus, loadRegisteredBaseline } from '../data/baselineRegistered';
 
-const BASELINES = Object.fromEntries(
-    baselineModules.map((mod) => [
-        mod.module_key,
-        {
-            moduleName: mod.label,
-            menus: baselineMenus
-                .filter((menu) => menu.module_key === mod.module_key)
-                .map((menu) => ({
-                    id: menu.menu_key,
-                    label: menu.label,
-                    parentId: menu.parent_key,
-                    order: menu.order,
-                    route: null,
-                    status: menu.enabled ? 'active' : 'inactive',
-                })),
-        },
-    ])
-);
+// Built per call: the baseline also holds the modules registered from the Control Center.
+const buildBaselines = () =>
+    Object.fromEntries(
+        allBaselineModules().map((mod) => [
+            mod.module_key,
+            {
+                moduleName: mod.label,
+                menus: allBaselineMenus()
+                    .filter((menu) => menu.module_key === mod.module_key)
+                    .map((menu) => ({
+                        id: menu.menu_key,
+                        label: menu.label,
+                        parentId: menu.parent_key,
+                        order: menu.order,
+                        route: null,
+                        status: menu.enabled ? 'active' : 'inactive',
+                    })),
+            },
+        ])
+    );
 
 // 'one-coal' -> 'One-Coal' (the same label the backend gives an extension).
 function extensionLabel(moduleKey) {
@@ -76,7 +78,8 @@ export const moduleObservatoryService = {
     // module without one is an EXTENSION — monitored when at least one
     // site reports it, with nothing to compare against — otherwise null.
     async getOverview(moduleKey) {
-        const baseline = BASELINES[moduleKey] ?? null;
+        await loadRegisteredBaseline();
+        const baseline = buildBaselines()[moduleKey] ?? null;
 
         const { ok, data } = await apiJson(`/api/module-observatory/${moduleKey}`);
         if (!ok) throw new Error('Unable to load module observatory data.');

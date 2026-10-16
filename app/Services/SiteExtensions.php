@@ -33,7 +33,7 @@ class SiteExtensions
     {
         $baselineSiteKeys = array_map(
             fn (string $key) => SiteConfigPayload::MODULE_TO_SITE[$key] ?? $key,
-            BaselineKeys::MODULE_KEYS
+            BaselineKeys::moduleKeys()
         );
 
         $reported = array_unique([

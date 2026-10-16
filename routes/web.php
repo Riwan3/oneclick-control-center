@@ -6,6 +6,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PasswordResetRequestController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\BaselineRegistrationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\SiteController;
@@ -90,6 +91,11 @@ Route::middleware('auth')->prefix('api')->group(function () {
         // Manual connection check for one site.
         Route::post('/site-connections/{site}/check', [SiteConnectionController::class, 'check']);
 
+        // Register / unregister modules in the Master Baseline (baseline_manage,
+        // super_admin only). The read side is in the management group below.
+        Route::post('/baseline/modules', [BaselineRegistrationController::class, 'store']);
+        Route::delete('/baseline/modules/{moduleKey}', [BaselineRegistrationController::class, 'destroy']);
+
         // Site Configuration Foundation — persists per-site overrides
         // against the (frontend-only) Master Baseline Registry. Write
         // access restricted to super_admin only, matching the
@@ -135,6 +141,9 @@ Route::middleware('auth')->prefix('api')->group(function () {
 
     Route::middleware('role:super_admin,management')->group(function () {
         Route::get('/audit-logs', [AuditController::class, 'index']);
+
+        // Baseline registrations + the extensions waiting to be registered.
+        Route::get('/baseline', [BaselineRegistrationController::class, 'index']);
 
         // Read-only — matches the existing version_view capability
         // (also used by the Deployments page), which is true for

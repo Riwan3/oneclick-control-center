@@ -30,7 +30,7 @@ class ToggleSiteMenuConfigRequest extends FormRequest
                 'required',
                 'string',
                 function (string $attribute, mixed $value, \Closure $fail) {
-                    if (in_array($value, BaselineKeys::MODULE_KEYS, true)) {
+                    if (in_array($value, BaselineKeys::moduleKeys(), true)) {
                         return;
                     }
 
@@ -47,7 +47,7 @@ class ToggleSiteMenuConfigRequest extends FormRequest
                 function (string $attribute, mixed $value, \Closure $fail) {
                     $moduleKey = (string) $this->input('module_key');
 
-                    if (in_array($moduleKey, BaselineKeys::MODULE_KEYS, true)) {
+                    if (in_array($moduleKey, BaselineKeys::moduleKeys(), true)) {
                         $known = collect(BaselineKeys::menusForModule($moduleKey))->contains('menu_key', $value);
 
                         if (! $known) {

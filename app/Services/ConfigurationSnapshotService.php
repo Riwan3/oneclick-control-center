@@ -81,7 +81,7 @@ class ConfigurationSnapshotService
     private function resolveEffectiveModules($moduleOverrides): array
     {
         $effective = [];
-        foreach (BaselineKeys::MODULE_KEYS as $moduleKey) {
+        foreach (BaselineKeys::moduleKeys() as $moduleKey) {
             $effective[$moduleKey] = $moduleOverrides->has($moduleKey)
                 ? (bool) $moduleOverrides->get($moduleKey)
                 : self::BASELINE_DEFAULT_ENABLED;
@@ -99,7 +99,7 @@ class ConfigurationSnapshotService
         $effective = [];
 
         // Leaves first — parents are derived from these.
-        foreach (BaselineKeys::MENUS as $menu) {
+        foreach (BaselineKeys::menus() as $menu) {
             if (! BaselineKeys::isLeaf($menu['module_key'], $menu['menu_key'])) {
                 continue;
             }
@@ -112,7 +112,7 @@ class ConfigurationSnapshotService
             ];
         }
 
-        foreach (BaselineKeys::MENUS as $menu) {
+        foreach (BaselineKeys::menus() as $menu) {
             if (BaselineKeys::isLeaf($menu['module_key'], $menu['menu_key'])) {
                 continue;
             }

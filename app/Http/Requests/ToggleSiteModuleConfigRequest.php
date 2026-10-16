@@ -28,7 +28,7 @@ class ToggleSiteModuleConfigRequest extends FormRequest
                 'required',
                 'string',
                 function (string $attribute, mixed $value, \Closure $fail) {
-                    if (in_array($value, BaselineKeys::MODULE_KEYS, true)) {
+                    if (in_array($value, BaselineKeys::moduleKeys(), true)) {
                         return;
                     }
 

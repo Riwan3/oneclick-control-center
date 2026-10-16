@@ -7,21 +7,16 @@ import DashboardSection from '../components/dashboard/DashboardSection.vue';
 import BaselineHeader from '../components/baseline/BaselineHeader.vue';
 import BaselineSummary from '../components/baseline/BaselineSummary.vue';
 import BaselineModuleTable from '../components/baseline/BaselineModuleTable.vue';
+import BaselineRegistration from '../components/baseline/BaselineRegistration.vue';
 import LegacyCatalogueMapping from '../components/baseline/LegacyCatalogueMapping.vue';
 import SidebarManifest from '../components/module-observatory/SidebarManifest.vue';
 
 const auth = useAuthStore();
 
-// Reuses the existing capability architecture — no new capability was
-// created. change_log_view was chosen because it is the closest
-// existing governance-reference capability (true for super_admin and
-// management, false for view) and because this page is, conceptually,
-// exactly what that capability already describes: visibility into the
-// ecosystem's governance/change reference. This step implements no
-// write/mutation actions at all, so "management/view must not receive
-// write authority automatically" has nothing to grant yet — when write
-// actions are added later, they must be gated by a more restrictive
-// capability (e.g. settings_manage), not this read capability.
+// Visibility reuses change_log_view (true for super_admin and management, false
+// for view) — the closest existing governance-reference capability. Writes
+// (register / unregister a module) are gated by the more restrictive
+// baseline_manage, true only for super_admin; see canManage below.
 const {
     loading,
     error,
@@ -32,7 +27,21 @@ const {
     selectedModuleMenus,
     selectModule,
     legacyModuleMapping,
+    candidates,
+    acting,
+    actionError,
+    registerModule,
+    unregisterModule,
 } = useBaselineRegistry();
+
+// Registering / unregistering changes the baseline for every site, so it is
+// Super Admin only (baseline_manage); other roles see the registry read-only.
+const canManage = auth.can('baseline_manage');
+
+function handleUnregister(mod) {
+    const message = `Unregister ${mod.label} from the baseline? It becomes an extension again on the sites that report it; per-site settings are kept.`;
+    if (window.confirm(message)) unregisterModule(mod.module_key);
+}
 </script>
 
 <template>
@@ -51,10 +60,26 @@ const {
             <LegacyCatalogueMapping :entries="legacyModuleMapping" />
 
             <DashboardSection title="Modules" description="Every module in the baseline. Select a row to view its sidebar structure.">
+                <p v-if="actionError" class="mb-3 text-sm font-medium text-danger">{{ actionError }}</p>
                 <BaselineModuleTable
                     :modules="modules"
                     :selected-module-key="selectedModule?.module_key ?? null"
+                    :can-manage="canManage"
+                    :busy="acting"
                     @select="selectModule"
+                    @unregister="handleUnregister"
+                />
+            </DashboardSection>
+
+            <DashboardSection
+                title="Register Module"
+                description="Modules that sites report but the baseline does not have yet. Registering one adds it, with its sidebar, to the baseline."
+            >
+                <BaselineRegistration
+                    :candidates="candidates"
+                    :can-manage="canManage"
+                    :busy="acting"
+                    @register="registerModule"
                 />
             </DashboardSection>
 
