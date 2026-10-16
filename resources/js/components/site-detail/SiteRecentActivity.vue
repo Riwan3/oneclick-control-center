@@ -2,20 +2,25 @@
 import UiCard from '../ui/UiCard.vue';
 import UiBadge from '../ui/UiBadge.vue';
 import AppIcon from '../layout/AppIcon.vue';
+import { formatSiteTime, SITE_LOG_CLOCK_IS_UTC } from '../../helpers/siteTime';
 
-defineProps({
+const props = defineProps({
     activities: {
         type: Array,
         required: true,
         // shape: [{ occurred_at, type, title, description }] — from the site's login log
+    },
+    // The site's location decides the time zone the times are shown in (WIB/WITA/WIT).
+    location: {
+        type: String,
+        default: '',
     },
 });
 
 const typeVariant = { activity: 'success', system: 'warning' };
 
 function formatTime(iso) {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return formatSiteTime(iso, props.location, { digitsAreUtc: SITE_LOG_CLOCK_IS_UTC });
 }
 
 const typeIcons = {

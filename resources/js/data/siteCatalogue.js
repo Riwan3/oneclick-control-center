@@ -1,6 +1,7 @@
 import { reactive, ref } from 'vue';
 import { apiJson } from '../lib/http';
 import { modules as moduleCatalog } from '../config/modules';
+import { formatSiteTime } from '../helpers/siteTime';
 
 // Site catalogue backed by GET /api/site-connections (the `sites` table
 // plus the status last pulled from each connected OneClick site). The
@@ -23,17 +24,6 @@ const SITE_TO_BASELINE_MODULE = {
     'one-procedure': 'one-procedur',
 };
 
-function formatTimestamp(iso) {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
 function toSite(row) {
     const reported = new Set((row.modules ?? []).map((key) => SITE_TO_BASELINE_MODULE[key] ?? key));
 
@@ -52,10 +42,10 @@ function toSite(row) {
         modules: Object.fromEntries(moduleCatalog.map((mod) => [mod.key, reported.has(mod.key)])),
         systemHealth: row.health_score,
         environment: row.environment ?? '—',
-        deployedAt: formatTimestamp(row.deployed_at),
+        deployedAt: formatSiteTime(row.deployed_at, row.location),
         activeUsersToday: row.active_users_today ?? 0,
         dailyActivity: row.daily_activity ?? [],
-        lastActivity: formatTimestamp(row.last_checked_at),
+        lastActivity: formatSiteTime(row.last_checked_at, row.location),
         lastCheckedAt: row.last_checked_at,
         lastError: row.last_error,
         // What the site says about applying our configuration (null until it reports).

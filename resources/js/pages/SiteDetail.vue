@@ -113,7 +113,7 @@ const statusLabel = { online: 'Online', warning: 'Warning', offline: 'Offline', 
             title="Recent Activity"
             description="Latest logins on this site."
         >
-            <SiteRecentActivity :activities="detail?.recent_activity ?? []" />
+            <SiteRecentActivity :activities="detail?.recent_activity ?? []" :location="site.location" />
         </DashboardSection>
 
     </div>
